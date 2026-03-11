@@ -30,19 +30,50 @@ public class Main {
             opcao = scanner.nextInt();
             scanner.nextLine();
 
-            if (opcao == 1) {
+            switch (opcao) {
 
-                System.out.print("Digite o nome do cliente: ");
-                String nome = scanner.nextLine();
+                case 1: // cadastrar cliente
+                    System.out.println("Digite o seu nome:");
+                    String nomecliente = scanner.nextLine();
+                    System.out.println("Insira seu email:");
+                    String email = scanner.nextLine();
 
-                System.out.println("Digite o email do cliente: ");
-                String email = scanner.nextLine();
+                    Cliente cliente = new Cliente(nomecliente, email);
+                    clientes.add(cliente);
 
-                Cliente cliente = new Cliente(nome, email);
-                clientes.add(cliente);
-                System.out.println("Cliente cadastrado com sucesso!");
+                    System.out.println("Cadastro de Cliente realizado!");
+                    break;
+
+                case 2: // cadastrar produto
+
+                    break;
+
+                case 3: // criar produto
+
+                    break;
+
+                case 4: // listar pedidos
+
+                    break;
+
+                case 5: // atualizar status
+
+                    break;
+
+                case 6: // listar clientes
+
+                    break;
+
+                case 7: // encerramento de sistema
+
+
+                    System.out.println("Encerrando sistema...");
+                    return;
+                default:
+                    System.out.println("Opção inválida!");
+                    break;
+
             }
-            
 
         }
 
