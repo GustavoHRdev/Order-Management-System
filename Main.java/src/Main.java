@@ -34,11 +34,11 @@ public class Main {
 
                 case 1: // cadastrar cliente
                     System.out.println("Digite o seu nome:");
-                    String nomecliente = scanner.nextLine();
+                    String nomeCliente = scanner.nextLine();
                     System.out.println("Insira seu email:");
                     String email = scanner.nextLine();
 
-                    Cliente cliente = new Cliente(nomecliente, email);
+                    Cliente cliente = new Cliente(nomeCliente, email);
                     clientes.add(cliente);
 
                     System.out.println("Cadastro de Cliente realizado!");
@@ -46,9 +46,64 @@ public class Main {
 
                 case 2: // cadastrar produto
 
+                    System.out.println("Digite o nome do produto:");
+                    String nomeProduto = scanner.nextLine();
+
+                    System.out.println("Insira o preço do produto:");
+                    double preco = scanner.nextDouble();
+                    scanner.nextLine();
+
+                    Produto produto = new Produto(nomeProduto, preco);
+                    produtos.add(produto);
+                    System.out.println("Cadastro de Produto realizado!");
                     break;
 
                 case 3: // criar produto
+                 if (clientes.isEmpty()) {
+                     System.out.println("Nenhum cliente cadastrado.");
+                        break;
+                    }
+
+                    if (produtos.isEmpty()) {
+                        System.out.println("Nenhum produto cadastrado.");
+                        break;
+                    }
+
+                    System.out.println("\nEscolha um cliente:");
+
+                    for (int i = 0; i < clientes.size(); i++) {
+                        System.out.println(i + " - " + clientes.get(i).getNome());
+                    }
+
+                    int clienteIndex = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Cliente clienteSelecionado = clientes.get(clienteIndex);
+
+                    Pedido pedido = new Pedido(clienteSelecionado);
+
+                    System.out.println("\nEscolha um produto:");
+
+                    for (int i = 0; i < produtos.size(); i++) {
+                        System.out.println(i + " - " + produtos.get(i).getNome());
+                    }
+
+                    int produtoIndex = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Produto produtoSelecionado = produtos.get(produtoIndex);
+
+                    System.out.println("Digite a quantidade:");
+                    int quantidade = scanner.nextInt();
+                    scanner.nextLine();
+
+                    ItemPedido item = new ItemPedido(produtoSelecionado, quantidade);
+
+                    pedido.adicionarItem(item);
+
+                    pedidos.add(pedido);
+
+                    System.out.println("Pedido criado com sucesso!");
 
                     break;
 
@@ -61,7 +116,15 @@ public class Main {
                     break;
 
                 case 6: // listar clientes
+                if (clientes.isEmpty()) {
+                    System.out.println("Nenhum cliente Registrado!");
+                } else {
+                    System.out.println("\nClientes cadastrados:");
 
+                    for (Cliente clienteC : clientes) {
+                        System.out.println(clienteC);
+                    }
+                }
                     break;
 
                 case 7: // encerramento de sistema
