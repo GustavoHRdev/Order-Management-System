@@ -108,11 +108,67 @@ public class Main {
                     break;
 
                 case 4: // listar pedidos
+                if (pedidos.isEmpty()) {
+                    System.out.println("Nenhum pedido registrado.");
+                } else {
+                    System.out.println("\nPedidos registrados:");
 
+                    for (Pedido pedidoG : pedidos) {
+                        System.out.println(pedidoG);
+                    }
+                }
                     break;
 
                 case 5: // atualizar status
+                    if (pedidos.isEmpty()) {
+                        System.out.println("Nenhum pedido registrado.");
+                        break;
+                    }
 
+                    System.out.println("\nEscolha um pedido:");
+
+                    for (int i = 0; i < pedidos.size(); i++) {
+                        System.out.println(i + " - " + pedidos.get(i));
+                    }
+
+                    int pedidoIndex = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Pedido pedidoSelecionado = pedidos.get(pedidoIndex);
+
+                    System.out.println("\nEscolha o novo status:");
+                    System.out.println("1 - PENDENTE");
+                    System.out.println("2 - PROCESSANDO");
+                    System.out.println("3 - ENVIADO");
+                    System.out.println("4 - ENTREGUE");
+
+                    int statusOpcao = scanner.nextInt();
+                    scanner.nextLine();
+
+                    StatusPedido novoStatus = null;
+
+                    switch (statusOpcao) {
+                        case 1:
+                            novoStatus = StatusPedido.PENDENTE;
+                            break;
+                        case 2:
+                            novoStatus = StatusPedido.PROCESSANDO;
+                            break;
+                        case 3:
+                            novoStatus = StatusPedido.ENVIADO;
+                            break;
+                        case 4:
+                            novoStatus = StatusPedido.ENTREGUE;
+                            break;
+                        default:
+                            System.out.println("Status inválido!");
+                            break;
+                    }
+
+                    if (novoStatus != null) {
+                        pedidoSelecionado.atualizarStatus(novoStatus);
+                        System.out.println("Status atualizado com sucesso!");
+                    }
                     break;
 
                 case 6: // listar clientes
