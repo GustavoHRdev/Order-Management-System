@@ -1,108 +1,199 @@
-Order Management System
+# 🧾 Order Management System
 
-A simple Order Management System developed in Java to practice core backend concepts such as Object-Oriented Programming, collections, and basic system architecture.
+A learning-focused Order Management System developed in **Java**, implementing core backend concepts through a practical, real-world business scenario.
 
-This project simulates a basic system where it is possible to manage customers, products, and orders through a console-based interface.
+---
 
-🚀 Features
+## 📋 Table of Contents
 
-Register customers
+- [Purpose](#purpose)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Business Rules](#business-rules)
+- [Installation & Setup](#installation--setup)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Learning Outcomes](#learning-outcomes)
+- [Future Improvements](#future-improvements)
 
-Register products
+---
 
-Create orders
+## 🎯 Purpose
 
-List orders
+This project serves as a **backend development foundation**, focusing on:
 
-Update order status
+- **Object-Oriented Programming (OOP)** — Encapsulation, inheritance, and polymorphism
+- **Domain Modeling** — Designing entities and relationships
+- **Business Logic** — Implementing real-world rules and workflows
+- **Data Structures** — Managing complex data relationships
+- **Application Flow** — User interaction and state management
 
-The data is stored in memory using Java collections.
+**Goal:** Build a strong Java foundation before advancing to frameworks like Spring Boot.
 
-🧠 Concepts Practiced
+---
 
-This project focuses on practicing important backend fundamentals:
+## ⚙️ Features
 
-Object-Oriented Programming (OOP)
+- ✅ **Customer Management** — Create and list customers
+- ✅ **Product Catalog** — Create and manage products  
+- ✅ **Order Management** — Create orders and add items
+- ✅ **Smart Calculations** — Automatic order value computation
+- ✅ **Order Tracking** — Monitor order status through lifecycle
+- ✅ **Order History** — View all orders and their details
+- ✅ **Interactive Menu** — User-friendly console interface
 
-Class relationships
+---
 
-Lists and collections
+## 🧱 Architecture
 
-Console interaction with Scanner
+### Core Entities
 
-Basic system architecture
+| Entity | Purpose |
+|--------|---------|
+| **Customer** | Represents the buyer with contact information |
+| **Product** | Available items for sale with pricing |
+| **Order** | Contains customer reference, items, and lifecycle status |
+| **OrderItem** | Bridges Product and Order (tracks quantity + subtotal) |
+| **OrderStatus** | Enum controlling the order lifecycle |
 
-Separation of models
+### Entity Relationships
 
-📂 Project Structure
-src
- ├── model
- │    ├── Cliente.java
- │    ├── Produto.java
- │    └── Pedido.java
- │
- └── Main.java
+```
+Customer (1) ──── (many) Order
+Order (1) ──── (many) OrderItem
+Product (1) ──── (many) OrderItem
+```
 
-Cliente → Represents a system customer
+---
 
-Produto → Represents a product available for ordering
+## 🧠 Business Rules
 
-Pedido → Represents an order created by a customer
+- Every order must belong to exactly one customer
+- An order can contain multiple items (products)
+- Each item tracks product, quantity, and calculated subtotal
+- **Order total is calculated automatically** by summing all item subtotals
+- Order status follows a defined lifecycle (e.g., PENDING → CONFIRMED → DELIVERED)
+- Only valid orders with items can be created
+- Order status updates are tracked throughout the order lifecycle
 
-Main → Contains the application menu and system execution
+---
 
-🖥️ Example Menu
+## 📦 Installation & Setup
+
+### Prerequisites
+
+- **Java 17** or higher
+- **IDE**: IntelliJ IDEA, Eclipse, VS Code (with Extension Pack for Java), or any preferred IDE
+
+### Steps
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/GustavoHRdev/Order-Management-System.git
+   cd Order-Management-System
+   ```
+
+2. **Open in your IDE**
+   - IntelliJ IDEA: File → Open → Select folder
+   - Eclipse: File → Import → Existing Projects into Workspace
+   - VS Code: File → Open Folder
+
+3. **Run the application**
+   - Locate `src/Main.java`
+   - Right-click → Run (or press Ctrl+Shift+F10 in IntelliJ)
+
+---
+
+## 🚀 Usage
+
+Once the application starts, you'll see an interactive menu:
+
+```
+========== ORDER MANAGEMENT SYSTEM ==========
+
 1 - Register Customer
 2 - Register Product
 3 - Create Order
 4 - List Orders
 5 - Update Order Status
-6 - Exit
-⚙️ Technologies
+6 - List Customers
+7 - Exit
 
-Java
+Choose an option: _
+```
 
-IntelliJ IDEA
+### Example Workflow
 
-Object-Oriented Programming
+**Step 1:** Register a customer
+- Choose option `1`
+- Enter customer name and email
 
-🎯 Purpose of the Project
+**Step 2:** Register products
+- Choose option `2`
+- Enter product name and price
+- Repeat to add multiple products
 
-This project was created for learning purposes, focusing on backend development using Java.
+**Step 3:** Create an order
+- Choose option `3`
+- Select a customer
+- Add products with quantities
+- Order total is calculated automatically
 
-It is part of my journey to improve my backend skills and understand how real systems are structured.
+**Step 4:** Track orders
+- Choose option `4` to view all orders with items and status
+- Choose option `5` to update order status
 
-👨‍💻 Author
+---
 
-Developed by Gustavo Ribeiro
+## 📂 Project Structure
 
-▶️ How to Run the Project Locally
+```
+Order-Management-System/
+├── src/
+│   ├── Main.java                 # Application entry point & menu
+│   ├── entities/                 # Core domain classes
+│   │   ├── Customer.java
+│   │   ├── Product.java
+│   │   ├── Order.java
+│   │   ├── OrderItem.java
+│   │   └── OrderStatus.java      # Enum
+│   └── services/                 # Business logic (optional)
+├── out/                          # Compiled classes
+├── README.md                     # This file
+└── Order-Management-System.iml   # IntelliJ project file
+```
 
-Follow these steps to run the project on your machine:
+---
 
-1. Clone the repository
-git clone https://github.com/your-username/order-management-system.git
-2. Open the project
+## 💡 Learning Outcomes
 
-Open the project using your preferred IDE, such as IntelliJ IDEA.
+By studying this project, you'll understand:
 
-3. Compile and run
+1. **OOP Principles** — Classes, objects, inheritance, and encapsulation
+2. **Domain Modeling** — How to structure entities and their relationships
+3. **Business Logic** — Implementing rules like order calculations
+4. **Collections** — Using ArrayList, HashMaps for data management
+5. **Enums** — Type-safe constants for order status
+6. **User Interaction** — Building console-based interfaces
+7. **State Management** — Tracking object state changes
 
-Run the Main.java file located in:
+---
 
-src/Main.java
+## 🚀 Future Improvements
 
-The console menu will appear:
+- 🔹 **Input Validation** — Regex for emails, numeric validation
+- 🔹 **Better Formatting** — Currency formatting (e.g., R$ 1.234,56)
+- 🔹 **Enhanced UX** — Improved menu navigation and error messages
+- 🔹 **Data Persistence** — Save/load from files or database
+- 🔹 **Layered Architecture** — Controller/Service/Repository patterns
+- 🔹 **Error Handling** — Custom exceptions and try-catch blocks
+- 🔹 **Unit Tests** — JUnit tests for business logic
+- 🔹 **Order Analytics** — Reports and statistics
 
-1 - Register Customer
-2 - Register Product
-3 - Create Order
-4 - List Orders
-5 - Update Order Status
-6 - Exit
+---
 
-- Java 17 or higher
-- IntelliJ IDEA (recommended)
-4. Use the menu
+## 📌 Notes
 
-Simply enter the number of the desired option in the console to interact with the system.
+This is a **learning project** focused on building fundamentals before moving to Spring Boot. The code prioritizes clarity and educational value over production-ready patterns.
+
+Feel free to fork, modify, and use as a reference for your own backend learning journey! 🎓
