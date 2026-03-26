@@ -11,6 +11,9 @@ public class Pedido {
     private Cliente cliente;
     private List<ItemPedido> itens;
     private StatusPedido status;
+    public StatusPedido getStatus() {
+        return status;
+    }
 
     public Pedido(Cliente cliente) {
         this.id = contador++;
@@ -18,6 +21,7 @@ public class Pedido {
         this.itens = new ArrayList<>();
         this.status = StatusPedido.PENDENTE;
     }
+
 
     public void adicionarItem(ItemPedido item) {
         itens.add(item);
