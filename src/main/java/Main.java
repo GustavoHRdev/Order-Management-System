@@ -21,7 +21,7 @@ public class Main {
             System.out.println("\n1 - Cadastrar cliente");
             System.out.println("2 - Cadastrar produto");
             System.out.println("3 - Criar pedido");
-            System.out.println("4 - Listar pedidos");
+        System.out.println("4 - Listar pedidos");
             System.out.println("5 - Atualizar status do pedido");
             System.out.println("6 - Listar clientes");
             System.out.println("7 - Sair");
