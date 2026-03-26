@@ -11,6 +11,7 @@ A learning-focused Order Management System developed in **Java**, implementing c
 - [Architecture](#architecture)
 - [Business Rules](#business-rules)
 - [Installation & Setup](#installation--setup)
+- [Tests](#tests)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
 - [Learning Outcomes](#learning-outcomes)
@@ -41,6 +42,8 @@ This project serves as a **backend development foundation**, focusing on:
 - ✅ **Order Tracking** — Monitor order status through lifecycle
 - ✅ **Order History** — View all orders and their details
 - ✅ **Interactive Menu** — User-friendly console interface
+- ✅ **Commands** — Menu actions encapsulated via Command pattern
+- ✅ **Unit Tests** — Service-level JUnit tests
 
 ---
 
@@ -72,7 +75,7 @@ Product (1) ──── (many) OrderItem
 - An order can contain multiple items (products)
 - Each item tracks product, quantity, and calculated subtotal
 - **Order total is calculated automatically** by summing all item subtotals
-- Order status follows a defined lifecycle (e.g., PENDING → CONFIRMED → DELIVERED)
+- Order status follows a defined lifecycle (e.g., PENDING → PROCESSING → SHIPPED → DELIVERED / CANCELED)
 - Only valid orders with items can be created
 - Order status updates are tracked throughout the order lifecycle
 
@@ -82,8 +85,9 @@ Product (1) ──── (many) OrderItem
 
 ### Prerequisites
 
-- **Java 17** or higher
+- **Java 11** or higher
 - **IDE**: IntelliJ IDEA, Eclipse, VS Code (with Extension Pack for Java), or any preferred IDE
+- **Maven** (optional if using IDE Maven integration)
 
 ### Steps
 
@@ -99,7 +103,7 @@ Product (1) ──── (many) OrderItem
    - VS Code: File → Open Folder
 
 3. **Run the application**
-   - Locate `src/Main.java`
+   - Locate `src/main/java/app/Main.java`
    - Right-click → Run (or press Ctrl+Shift+F10 in IntelliJ)
 
 ---
@@ -109,17 +113,14 @@ Product (1) ──── (many) OrderItem
 Once the application starts, you'll see an interactive menu:
 
 ```
-========== ORDER MANAGEMENT SYSTEM ==========
-
-1 - Register Customer
-2 - Register Product
-3 - Create Order
-4 - List Orders
-5 - Update Order Status
-6 - List Customers
-7 - Exit
-
-Choose an option: _
+1 - Cadastrar cliente
+2 - Cadastrar produto
+3 - Criar pedido
+4 - Listar pedidos
+5 - Atualizar status do pedido
+6 - Listar clientes
+7 - Sair
+Escolha uma opção: _
 ```
 
 ### Example Workflow
@@ -145,20 +146,35 @@ Choose an option: _
 
 ---
 
+## 🧪 Tests
+
+Run the tests with Maven:
+
+```bash
+mvn test
+```
+
+You can also run tests directly from IntelliJ (right-click a test class or use the Maven tool window).
+
+---
+
 ## 📂 Project Structure
 
 ```
 Order-Management-System/
 ├── src/
-│   ├── Main.java                 # Application entry point & menu
-│   ├── entities/                 # Core domain classes
-│   │   ├── Customer.java
-│   │   ├── Product.java
-│   │   ├── Order.java
-│   │   ├── OrderItem.java
-│   │   └── OrderStatus.java      # Enum
-│   └── services/                 # Business logic (optional)
+│   ├── main/
+│   │   └── java/
+│   │       ├── app/              # Application entry point
+│   │       ├── cli/              # Console UI and commands
+│   │       ├── model/            # Core domain classes
+│   │       ├── repository/       # In-memory repositories
+│   │       └── service/          # Business logic
+│   └── test/
+│       └── java/
+│           └── service/          # Unit tests
 ├── out/                          # Compiled classes
+├── pom.xml                       # Maven build
 ├── README.md                     # This file
 └── Order-Management-System.iml   # IntelliJ project file
 ```
@@ -181,13 +197,12 @@ By studying this project, you'll understand:
 
 ## 🚀 Future Improvements
 
-- 🔹 **Input Validation** — Regex for emails, numeric validation
+- 🔹 **Input Validation** — Stronger validation and user feedback
 - 🔹 **Better Formatting** — Currency formatting (e.g., R$ 1.234,56)
 - 🔹 **Enhanced UX** — Improved menu navigation and error messages
 - 🔹 **Data Persistence** — Save/load from files or database
-- 🔹 **Layered Architecture** — Controller/Service/Repository patterns
-- 🔹 **Error Handling** — Custom exceptions and try-catch blocks
-- 🔹 **Unit Tests** — JUnit tests for business logic
+- 🔹 **Layered Architecture** — Stronger boundaries and DTOs
+- 🔹 **Error Handling** — Custom exceptions and error codes
 - 🔹 **Order Analytics** — Reports and statistics
 
 ---
