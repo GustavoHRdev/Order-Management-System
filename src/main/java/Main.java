@@ -1,76 +1,79 @@
 import model.*;
+import repository.*;
+import service.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        Scanner scanner = new Scanner(System.in);
+        try (Scanner scanner = new Scanner(System.in)) {
 
-        List<Cliente> clientes = new ArrayList<>();
-        List<Produto> produtos = new ArrayList<>();
-        List<Pedido> pedidos = new ArrayList<>();
+            // Repositories
+            ClienteRepository clienteRepository = new ClienteRepository();
+            ProdutoRepository produtoRepository = new ProdutoRepository();
+            PedidoRepository pedidoRepository = new PedidoRepository();
 
-        int opcao = 0;
+            // Services
+            ClienteService clienteService = new ClienteService(clienteRepository);
+            ProdutoService produtoService = new ProdutoService(produtoRepository);
+            PedidoService pedidoService = new PedidoService(
+                    pedidoRepository,
+                    clienteRepository,
+                    produtoRepository
+            );
 
-        while (opcao != 7) {
+            Map<Integer, Runnable> actions = new HashMap<>();
+            boolean[] running = {true};
 
-            System.out.println("\n1 - Cadastrar cliente");
-            System.out.println("2 - Cadastrar produto");
-            System.out.println("3 - Criar pedido");
-        System.out.println("4 - Listar pedidos");
-            System.out.println("5 - Atualizar status do pedido");
-            System.out.println("6 - Listar clientes");
-            System.out.println("7 - Sair");
-            System.out.print("Escolha uma opção: ");
+            actions.put(1, () -> { // cadastrar cliente
+                try {
+                    System.out.println("Digite o nome:");
+                    String nome = scanner.nextLine();
 
-            opcao = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (opcao) {
-
-                case 1: // cadastrar cliente
-                    System.out.println("Digite o seu nome:");
-                    String nomeCliente = scanner.nextLine();
-                    System.out.println("Insira seu email:");
+                    System.out.println("Digite o email:");
                     String email = scanner.nextLine();
 
-                    Cliente cliente = new Cliente(nomeCliente, email);
-                    clientes.add(cliente);
+                    clienteService.cadastrarCliente(nome, email);
+                    System.out.println("Cliente cadastrado com sucesso!");
 
-                    System.out.println("Cadastro de Cliente realizado!");
-                    break;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            });
 
-                case 2: // cadastrar produto
-
+            actions.put(2, () -> { // cadastrar produto
+                try {
                     System.out.println("Digite o nome do produto:");
                     String nomeProduto = scanner.nextLine();
 
-                    System.out.println("Insira o preço do produto:");
+                    System.out.println("Digite o preço:");
                     double preco = scanner.nextDouble();
                     scanner.nextLine();
 
-                    Produto produto = new Produto(nomeProduto, preco);
-                    produtos.add(produto);
-                    System.out.println("Cadastro de Produto realizado!");
-                    break;
+                    produtoService.cadastrarProduto(nomeProduto, preco);
+                    System.out.println("Produto cadastrado com sucesso!");
 
-                case 3: // criar produto
-                 if (clientes.isEmpty()) {
-                     System.out.println("Nenhum cliente cadastrado.");
-                        break;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    scanner.nextLine();
+                }
+            });
+
+            actions.put(3, () -> { // criar pedido
+                try {
+                    List<Cliente> clientes = clienteService.listarClientes();
+
+                    if (clientes.isEmpty()) {
+                        System.out.println("Nenhum cliente cadastrado.");
+                        return;
                     }
 
-                    if (produtos.isEmpty()) {
-                        System.out.println("Nenhum produto cadastrado.");
-                        break;
-                    }
-
-                    System.out.println("\nEscolha um cliente:");
-
+                    System.out.println("\nClientes:");
                     for (int i = 0; i < clientes.size(); i++) {
                         System.out.println(i + " - " + clientes.get(i).getNome());
                     }
@@ -78,124 +81,146 @@ public class Main {
                     int clienteIndex = scanner.nextInt();
                     scanner.nextLine();
 
-                    Cliente clienteSelecionado = clientes.get(clienteIndex);
+                    List<Produto> produtos = produtoService.listarProdutos();
 
-                    Pedido pedido = new Pedido(clienteSelecionado);
+                    if (produtos.isEmpty()) {
+                        System.out.println("Nenhum produto cadastrado.");
+                        return;
+                    }
 
-                    System.out.println("\nEscolha um produto:");
-
+                    System.out.println("\nProdutos:");
                     for (int i = 0; i < produtos.size(); i++) {
                         System.out.println(i + " - " + produtos.get(i).getNome());
                     }
 
+                    pedidoService.criarPedido(clienteIndex);
+
+                    int pedidoIndex = pedidoService.listarPedidos().size() - 1;
+
                     int produtoIndex = scanner.nextInt();
                     scanner.nextLine();
-
-                    Produto produtoSelecionado = produtos.get(produtoIndex);
 
                     System.out.println("Digite a quantidade:");
                     int quantidade = scanner.nextInt();
                     scanner.nextLine();
 
-                    ItemPedido item = new ItemPedido(produtoSelecionado, quantidade);
-
-                    pedido.adicionarItem(item);
-
-                    pedidos.add(pedido);
+                    pedidoService.adicionarItem(pedidoIndex, produtoIndex, quantidade);
 
                     System.out.println("Pedido criado com sucesso!");
 
-                    break;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    scanner.nextLine();
+                }
+            });
 
-                case 4: // listar pedidos
+            actions.put(4, () -> { // listar pedidos
+                List<Pedido> pedidos = pedidoService.listarPedidos();
+
                 if (pedidos.isEmpty()) {
                     System.out.println("Nenhum pedido registrado.");
                 } else {
-                    System.out.println("\nPedidos registrados:");
-
-                    for (Pedido pedidoG : pedidos) {
-                        System.out.println(pedidoG);
+                    System.out.println("\nPedidos:");
+                    for (Pedido pedido : pedidos) {
+                        System.out.println(pedido);
                     }
                 }
-                    break;
+            });
 
-                case 5: // atualizar status
-                    if (pedidos.isEmpty()) {
+            actions.put(5, () -> { // atualizar status
+                try {
+                    List<Pedido> pedidosLista = pedidoService.listarPedidos();
+
+                    if (pedidosLista.isEmpty()) {
                         System.out.println("Nenhum pedido registrado.");
-                        break;
+                        return;
                     }
 
-                    System.out.println("\nEscolha um pedido:");
-
-                    for (int i = 0; i < pedidos.size(); i++) {
-                        System.out.println(i + " - " + pedidos.get(i));
+                    System.out.println("\nPedidos:");
+                    for (int i = 0; i < pedidosLista.size(); i++) {
+                        System.out.println(i + " - " + pedidosLista.get(i));
                     }
 
                     int pedidoIndex = scanner.nextInt();
                     scanner.nextLine();
 
-                    Pedido pedidoSelecionado = pedidos.get(pedidoIndex);
-
-                    System.out.println("\nEscolha o novo status:");
+                    System.out.println("\nEscolha o status:");
                     System.out.println("1 - PENDENTE");
                     System.out.println("2 - PROCESSANDO");
                     System.out.println("3 - ENVIADO");
                     System.out.println("4 - ENTREGUE");
+                    System.out.println("5 - CANCELADO");
 
                     int statusOpcao = scanner.nextInt();
                     scanner.nextLine();
 
-                    StatusPedido novoStatus = null;
+                    Map<Integer, StatusPedido> statusMap = new HashMap<>();
+                    statusMap.put(1, StatusPedido.PENDENTE);
+                    statusMap.put(2, StatusPedido.PROCESSANDO);
+                    statusMap.put(3, StatusPedido.ENVIADO);
+                    statusMap.put(4, StatusPedido.ENTREGUE);
+                    statusMap.put(5, StatusPedido.CANCELADO);
 
-                    switch (statusOpcao) {
-                        case 1:
-                            novoStatus = StatusPedido.PENDENTE;
-                            break;
-                        case 2:
-                            novoStatus = StatusPedido.PROCESSANDO;
-                            break;
-                        case 3:
-                            novoStatus = StatusPedido.ENVIADO;
-                            break;
-                        case 4:
-                            novoStatus = StatusPedido.ENTREGUE;
-                            break;
-                        default:
-                            System.out.println("Status inválido!");
-                            break;
+                    StatusPedido status = statusMap.get(statusOpcao);
+                    if (status == null) {
+                        System.out.println("Status inválido!");
+                        return;
                     }
 
-                    if (novoStatus != null) {
-                        pedidoSelecionado.atualizarStatus(novoStatus);
-                        System.out.println("Status atualizado com sucesso!");
-                    }
-                    break;
+                    pedidoService.atualizarStatus(pedidoIndex, status);
+                    System.out.println("Status atualizado com sucesso!");
 
-                case 6: // listar clientes
-                if (clientes.isEmpty()) {
-                    System.out.println("Nenhum cliente Registrado!");
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    scanner.nextLine();
+                }
+            });
+
+            actions.put(6, () -> { // listar clientes
+                List<Cliente> listaClientes = clienteService.listarClientes();
+
+                if (listaClientes.isEmpty()) {
+                    System.out.println("Nenhum cliente cadastrado.");
                 } else {
-                    System.out.println("\nClientes cadastrados:");
-
-                    for (Cliente clienteC : clientes) {
-                        System.out.println(clienteC);
+                    System.out.println("\nClientes:");
+                    for (Cliente cliente : listaClientes) {
+                        System.out.println(cliente);
                     }
                 }
-                    break;
+            });
 
-                case 7: // encerramento de sistema
+            actions.put(7, () -> {
+                System.out.println("Encerrando sistema...");
+                running[0] = false;
+            });
 
+            while (running[0]) {
 
-                    System.out.println("Encerrando sistema...");
-                    return;
-                default:
-                    System.out.println("Opção inválida!");
-                    break;
+                System.out.println("\n1 - Cadastrar cliente");
+                System.out.println("2 - Cadastrar produto");
+                System.out.println("3 - Criar pedido");
+                System.out.println("4 - Listar pedidos");
+                System.out.println("5 - Atualizar status do pedido");
+                System.out.println("6 - Listar clientes");
+                System.out.println("7 - Sair");
+                System.out.print("Escolha uma opção: ");
 
+                try {
+                    int opcao = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Runnable action = actions.get(opcao);
+                    if (action == null) {
+                        System.out.println("Opção inválida!");
+                        continue;
+                    }
+
+                    action.run();
+                } catch (Exception e) {
+                    System.out.println("Entrada inválida!");
+                    scanner.nextLine();
+                }
             }
-
         }
-
-        scanner.close();
     }
 }
