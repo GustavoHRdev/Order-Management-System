@@ -7,15 +7,14 @@ import service.PedidoService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class AtualizarStatusCommand implements Command {
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final PedidoService pedidoService;
 
-    public AtualizarStatusCommand(Scanner scanner, PedidoService pedidoService) {
-        this.scanner = scanner;
+    public AtualizarStatusCommand(InputReader inputReader, PedidoService pedidoService) {
+        this.inputReader = inputReader;
         this.pedidoService = pedidoService;
     }
 
@@ -30,12 +29,11 @@ public class AtualizarStatusCommand implements Command {
             }
 
             System.out.println("\nPedidos:");
-            for (int i = 0; i < pedidosLista.size(); i++) {
-                System.out.println(i + " - " + pedidosLista.get(i));
+            for (Pedido pedido : pedidosLista) {
+                System.out.println(pedido.getId() + " - " + pedido);
             }
 
-            int pedidoIndex = scanner.nextInt();
-            scanner.nextLine();
+            int pedidoId = inputReader.readInt("Digite o ID do pedido:");
 
             System.out.println("\nEscolha o status:");
             System.out.println("1 - PENDENTE");
@@ -44,8 +42,7 @@ public class AtualizarStatusCommand implements Command {
             System.out.println("4 - ENTREGUE");
             System.out.println("5 - CANCELADO");
 
-            int statusOpcao = scanner.nextInt();
-            scanner.nextLine();
+            int statusOpcao = inputReader.readInt(null);
 
             Map<Integer, StatusPedido> statusMap = new HashMap<>();
             statusMap.put(1, StatusPedido.PENDENTE);
@@ -60,12 +57,11 @@ public class AtualizarStatusCommand implements Command {
                 return;
             }
 
-            pedidoService.atualizarStatus(pedidoIndex, status);
+            pedidoService.atualizarStatus(pedidoId, status);
             System.out.println("Status atualizado com sucesso!");
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            scanner.nextLine();
         }
     }
 }

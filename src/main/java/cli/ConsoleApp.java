@@ -13,12 +13,12 @@ import java.util.Scanner;
 
 public class ConsoleApp {
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final Map<Integer, MenuItem> menu = new LinkedHashMap<>();
     private boolean running = true;
 
     public ConsoleApp(Scanner scanner) {
-        this.scanner = scanner;
+        this.inputReader = new InputReader(scanner);
 
         ClienteRepository clienteRepository = new ClienteRepository();
         ProdutoRepository produtoRepository = new ProdutoRepository();
@@ -33,15 +33,15 @@ public class ConsoleApp {
         );
 
         menu.put(1, new MenuItem("Cadastrar cliente",
-                new CadastrarClienteCommand(scanner, clienteService)));
+                new CadastrarClienteCommand(inputReader, clienteService)));
         menu.put(2, new MenuItem("Cadastrar produto",
-                new CadastrarProdutoCommand(scanner, produtoService)));
+                new CadastrarProdutoCommand(inputReader, produtoService)));
         menu.put(3, new MenuItem("Criar pedido",
-                new CriarPedidoCommand(scanner, clienteService, produtoService, pedidoService)));
+                new CriarPedidoCommand(inputReader, clienteService, produtoService, pedidoService)));
         menu.put(4, new MenuItem("Listar pedidos",
                 new ListarPedidosCommand(pedidoService)));
         menu.put(5, new MenuItem("Atualizar status do pedido",
-                new AtualizarStatusCommand(scanner, pedidoService)));
+                new AtualizarStatusCommand(inputReader, pedidoService)));
         menu.put(6, new MenuItem("Listar clientes",
                 new ListarClientesCommand(clienteService)));
         menu.put(7, new MenuItem("Sair",
@@ -52,9 +52,6 @@ public class ConsoleApp {
         while (running) {
             printMenu();
             int opcao = readOption();
-            if (opcao == -1) {
-                continue;
-            }
 
             MenuItem item = menu.get(opcao);
             if (item == null) {
@@ -75,14 +72,6 @@ public class ConsoleApp {
     }
 
     private int readOption() {
-        try {
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
-            return opcao;
-        } catch (Exception e) {
-            System.out.println("Entrada inválida!");
-            scanner.nextLine();
-            return -1;
-        }
+        return inputReader.readInt(null);
     }
 }

@@ -2,26 +2,21 @@ package cli;
 
 import service.ClienteService;
 
-import java.util.Scanner;
-
 public class CadastrarClienteCommand implements Command {
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final ClienteService clienteService;
 
-    public CadastrarClienteCommand(Scanner scanner, ClienteService clienteService) {
-        this.scanner = scanner;
+    public CadastrarClienteCommand(InputReader inputReader, ClienteService clienteService) {
+        this.inputReader = inputReader;
         this.clienteService = clienteService;
     }
 
     @Override
     public void execute() {
         try {
-            System.out.println("Digite o nome:");
-            String nome = scanner.nextLine();
-
-            System.out.println("Digite o email:");
-            String email = scanner.nextLine();
+            String nome = inputReader.readLine("Digite o nome:");
+            String email = inputReader.readLine("Digite o email:");
 
             clienteService.cadastrarCliente(nome, email);
             System.out.println("Cliente cadastrado com sucesso!");
