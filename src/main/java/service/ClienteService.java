@@ -13,7 +13,7 @@ public class ClienteService {
         this.repository = repository;
     }
 
-    public void cadastrarCliente(String nome, String email) {
+    public Cliente cadastrarCliente(String nome, String email) {
 
         if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("Nome inválido.");
@@ -25,10 +25,16 @@ public class ClienteService {
 
         Cliente cliente = new Cliente(nome, email);
         repository.salvar(cliente);
+        return cliente;
     }
 
     public List<Cliente> listarClientes() {
         return repository.listar();
+    }
+
+    public Cliente buscarClientePorId(int id) {
+        return repository.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Cliente inválido!"));
     }
 
     private boolean emailValido(String email) {

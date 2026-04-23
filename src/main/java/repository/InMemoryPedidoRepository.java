@@ -1,6 +1,7 @@
 package repository;
 
 import model.Pedido;
+import model.ItemPedido;
 import model.StatusPedido;
 
 import java.util.ArrayList;
@@ -9,9 +10,13 @@ import java.util.List;
 public class InMemoryPedidoRepository implements PedidoRepository {
 
     private final List<Pedido> pedidos = new ArrayList<>();
+    private int nextId = 1;
 
     @Override
     public void salvar(Pedido pedido) {
+        if (pedido.getId() == 0) {
+            pedido.setId(nextId++);
+        }
         pedidos.add(pedido);
     }
 
@@ -21,19 +26,32 @@ public class InMemoryPedidoRepository implements PedidoRepository {
     }
 
     @Override
-    public Pedido buscarPorId(int id) {
+    public java.util.Optional<Pedido> buscarPorId(int id) {
         for (Pedido pedido : pedidos) {
             if (pedido.getId() == id) {
-                return pedido;
+                return java.util.Optional.of(pedido);
             }
         }
-
-        throw new IllegalArgumentException("Pedido inválido!");
+        return java.util.Optional.empty();
     }
 
     @Override
     public boolean estaVazio() {
         return pedidos.isEmpty();
+    }
+
+    @Override
+    public void adicionarItem(int pedidoId, ItemPedido itemPedido) {
+        Pedido pedido = buscarPorId(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido inválido!"));
+        pedido.adicionarItem(itemPedido);
+    }
+
+    @Override
+    public void atualizarStatus(int pedidoId, StatusPedido statusPedido) {
+        Pedido pedido = buscarPorId(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido inválido!"));
+        pedido.atualizarStatus(statusPedido);
     }
 
     @Override

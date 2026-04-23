@@ -2,8 +2,8 @@ package model;
 
 public class ItemPedido {
 
-    private Produto produto;
-    private int quantidade;
+    private final Produto produto;
+    private final int quantidade;
 
     public ItemPedido(Produto produto, int quantidade) {
         this.produto = produto;
@@ -12,6 +12,14 @@ public class ItemPedido {
 
     public double calcularSubtotal() {
         return produto.getPreco() * quantidade;
+    }
+
+    public Produto getProduto() {
+        return produto;
+    }
+
+    public int getQuantidade() {
+        return quantidade;
     }
 
     @Override

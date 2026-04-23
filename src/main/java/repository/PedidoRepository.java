@@ -3,6 +3,7 @@ package repository;
 import model.Pedido;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository {
 
@@ -10,9 +11,13 @@ public interface PedidoRepository {
 
     List<Pedido> listar();
 
-    Pedido buscarPorId(int id);
+    Optional<Pedido> buscarPorId(int id);
 
     boolean estaVazio();
+
+    void adicionarItem(int pedidoId, model.ItemPedido itemPedido);
+
+    void atualizarStatus(int pedidoId, model.StatusPedido statusPedido);
 
     void removerEntregues();
 }

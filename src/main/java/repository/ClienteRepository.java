@@ -3,6 +3,7 @@ package repository;
 import model.Cliente;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClienteRepository {
 
@@ -10,7 +11,7 @@ public interface ClienteRepository {
 
     List<Cliente> listar();
 
-    Cliente buscarPorId(int id);
+    Optional<Cliente> buscarPorId(int id);
 
     boolean estaVazio();
 }
