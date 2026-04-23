@@ -3,6 +3,7 @@ package service;
 import model.Cliente;
 import org.junit.jupiter.api.Test;
 import repository.ClienteRepository;
+import repository.InMemoryClienteRepository;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class ClienteServiceTest {
 
     @Test
     void cadastrarClienteDeveSalvarClienteValido() {
-        ClienteRepository repository = new ClienteRepository();
+        ClienteRepository repository = new InMemoryClienteRepository();
         ClienteService service = new ClienteService(repository);
 
         service.cadastrarCliente("Ana", "ana@example.com");
@@ -26,7 +27,7 @@ public class ClienteServiceTest {
 
     @Test
     void cadastrarClienteDeveFalharComNomeInvalido() {
-        ClienteRepository repository = new ClienteRepository();
+        ClienteRepository repository = new InMemoryClienteRepository();
         ClienteService service = new ClienteService(repository);
 
         assertThrows(IllegalArgumentException.class,
@@ -35,7 +36,7 @@ public class ClienteServiceTest {
 
     @Test
     void cadastrarClienteDeveFalharComEmailInvalido() {
-        ClienteRepository repository = new ClienteRepository();
+        ClienteRepository repository = new InMemoryClienteRepository();
         ClienteService service = new ClienteService(repository);
 
         assertThrows(IllegalArgumentException.class,

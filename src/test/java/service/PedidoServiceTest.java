@@ -4,6 +4,9 @@ import model.Pedido;
 import model.StatusPedido;
 import org.junit.jupiter.api.Test;
 import repository.ClienteRepository;
+import repository.InMemoryClienteRepository;
+import repository.InMemoryPedidoRepository;
+import repository.InMemoryProdutoRepository;
 import repository.PedidoRepository;
 import repository.ProdutoRepository;
 
@@ -17,9 +20,9 @@ public class PedidoServiceTest {
     @Test
     void criarPedidoDeveFalharSemClientes() {
         PedidoService service = new PedidoService(
-                new PedidoRepository(),
-                new ClienteRepository(),
-                new ProdutoRepository()
+                new InMemoryPedidoRepository(),
+                new InMemoryClienteRepository(),
+                new InMemoryProdutoRepository()
         );
 
         assertThrows(IllegalStateException.class, () -> service.criarPedido(1));
@@ -27,9 +30,9 @@ public class PedidoServiceTest {
 
     @Test
     void criarPedidoDeveSalvarPedido() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
@@ -44,10 +47,24 @@ public class PedidoServiceTest {
     }
 
     @Test
+    void criarPedidoDeveFalharQuandoClienteIdNaoExiste() {
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+
+        assertThrows(IllegalArgumentException.class, () -> service.criarPedido(999));
+    }
+
+    @Test
     void adicionarItemDeveAtualizarTotal() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
@@ -68,9 +85,9 @@ public class PedidoServiceTest {
 
     @Test
     void adicionarItemDeveFalharComQuantidadeInvalida() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
@@ -88,10 +105,30 @@ public class PedidoServiceTest {
     }
 
     @Test
+    void adicionarItemDeveFalharQuandoProdutoIdNaoExiste() {
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
+
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+        produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.adicionarItem(pedidoCriado.getId(), 999, 1));
+    }
+
+    @Test
     void atualizarStatusDeveFalharComStatusNulo() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
@@ -105,9 +142,9 @@ public class PedidoServiceTest {
 
     @Test
     void atualizarStatusDeveFalharQuandoPedidoNaoTemItens() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
@@ -122,9 +159,9 @@ public class PedidoServiceTest {
 
     @Test
     void atualizarStatusDevePermitirFluxoValido() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
@@ -148,9 +185,9 @@ public class PedidoServiceTest {
 
     @Test
     void atualizarStatusDeveFalharComTransicaoInvalida() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
@@ -170,9 +207,9 @@ public class PedidoServiceTest {
 
     @Test
     void adicionarItemDeveFalharQuandoPedidoNaoEstaPendente() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
@@ -193,9 +230,9 @@ public class PedidoServiceTest {
 
     @Test
     void removerPedidosEntreguesDeveRemoverApenasEntregues() {
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ProdutoRepository produtoRepository = new ProdutoRepository();
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        ClienteRepository clienteRepository = new InMemoryClienteRepository();
+        ProdutoRepository produtoRepository = new InMemoryProdutoRepository();
+        PedidoRepository pedidoRepository = new InMemoryPedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);

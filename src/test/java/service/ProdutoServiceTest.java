@@ -2,6 +2,7 @@ package service;
 
 import model.Produto;
 import org.junit.jupiter.api.Test;
+import repository.InMemoryProdutoRepository;
 import repository.ProdutoRepository;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class ProdutoServiceTest {
 
     @Test
     void cadastrarProdutoDeveSalvarProdutoValido() {
-        ProdutoRepository repository = new ProdutoRepository();
+        ProdutoRepository repository = new InMemoryProdutoRepository();
         ProdutoService service = new ProdutoService(repository);
 
         service.cadastrarProduto("Teclado", 150.0);
@@ -26,7 +27,7 @@ public class ProdutoServiceTest {
 
     @Test
     void cadastrarProdutoDeveFalharComNomeInvalido() {
-        ProdutoRepository repository = new ProdutoRepository();
+        ProdutoRepository repository = new InMemoryProdutoRepository();
         ProdutoService service = new ProdutoService(repository);
 
         assertThrows(IllegalArgumentException.class,
@@ -35,7 +36,7 @@ public class ProdutoServiceTest {
 
     @Test
     void cadastrarProdutoDeveFalharComPrecoInvalido() {
-        ProdutoRepository repository = new ProdutoRepository();
+        ProdutoRepository repository = new InMemoryProdutoRepository();
         ProdutoService service = new ProdutoService(repository);
 
         assertThrows(IllegalArgumentException.class,
