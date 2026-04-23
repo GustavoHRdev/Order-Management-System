@@ -27,7 +27,8 @@ public class PedidoService {
             throw new IllegalStateException("Nenhum cliente cadastrado.");
         }
 
-        Cliente cliente = clienteRepository.buscarPorId(clienteId);
+        Cliente cliente = clienteRepository.buscarPorId(clienteId)
+                .orElseThrow(() -> new IllegalArgumentException("Cliente inválido!"));
 
         Pedido pedido = new Pedido(cliente);
 
@@ -50,20 +51,28 @@ public class PedidoService {
             throw new IllegalArgumentException("Quantidade inválida.");
         }
 
-        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido inválido!"));
         if (pedido.getStatus() != StatusPedido.PENDENTE) {
             throw new IllegalStateException("Nao e permitido alterar itens de um pedido que nao esta pendente.");
         }
 
-        Produto produto = produtoRepository.buscarPorId(produtoId);
+        Produto produto = produtoRepository.buscarPorId(produtoId)
+                .orElseThrow(() -> new IllegalArgumentException("Produto inválido!"));
 
         ItemPedido item = new ItemPedido(produto, quantidade);
-        pedido.adicionarItem(item);
+        pedidoRepository.adicionarItem(pedidoId, item);
     }
 
     public List<Pedido> listarPedidos() {
         return pedidoRepository.listar();
     }
+
+    public Pedido buscarPedidoPorId(int pedidoId) {
+        return pedidoRepository.buscarPorId(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido inválido!"));
+    }
+
     public void atualizarStatus(int pedidoId, StatusPedido status) {
 
         if (pedidoRepository.estaVazio()) {
@@ -74,10 +83,11 @@ public class PedidoService {
             throw new IllegalArgumentException("Status inválido.");
         }
 
-        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido inválido!"));
         validarTransicaoStatus(pedido, status);
 
-        pedido.atualizarStatus(status);
+        pedidoRepository.atualizarStatus(pedidoId, status);
     }
 
     public void removerPedidosEntregues() {

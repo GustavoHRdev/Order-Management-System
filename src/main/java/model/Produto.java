@@ -2,14 +2,16 @@ package model;
 
 public class Produto {
 
-    private static int contador = 1;
-
     private int id;
-    private String nome;
-    private double preco;
+    private final String nome;
+    private final double preco;
 
     public Produto(String nome, double preco) {
-        this.id = contador++;
+        this(0, nome, preco);
+    }
+
+    public Produto(int id, String nome, double preco) {
+        this.id = id;
         this.nome = nome;
         this.preco = preco;
     }
@@ -24,6 +26,13 @@ public class Produto {
 
     public double getPreco() {
         return preco;
+    }
+
+    public void setId(int id) {
+        if (this.id != 0) {
+            throw new IllegalStateException("ID do produto já foi definido.");
+        }
+        this.id = id;
     }
 
     @Override

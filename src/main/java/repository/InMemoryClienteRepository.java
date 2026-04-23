@@ -8,9 +8,13 @@ import java.util.List;
 public class InMemoryClienteRepository implements ClienteRepository {
 
     private final List<Cliente> clientes = new ArrayList<>();
+    private int nextId = 1;
 
     @Override
     public void salvar(Cliente cliente) {
+        if (cliente.getId() == 0) {
+            cliente.setId(nextId++);
+        }
         clientes.add(cliente);
     }
 
@@ -20,14 +24,13 @@ public class InMemoryClienteRepository implements ClienteRepository {
     }
 
     @Override
-    public Cliente buscarPorId(int id) {
+    public java.util.Optional<Cliente> buscarPorId(int id) {
         for (Cliente cliente : clientes) {
             if (cliente.getId() == id) {
-                return cliente;
+                return java.util.Optional.of(cliente);
             }
         }
-
-        throw new IllegalArgumentException("Cliente inválido!");
+        return java.util.Optional.empty();
     }
 
     @Override

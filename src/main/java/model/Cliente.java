@@ -2,14 +2,16 @@ package model;
 
 public class Cliente {
 
-    private static int contador = 1;
-
     private int id;
-    private String nome;
-    private String email;
+    private final String nome;
+    private final String email;
 
     public Cliente(String nome, String email) {
-        this.id = contador++;
+        this(0, nome, email);
+    }
+
+    public Cliente(int id, String nome, String email) {
+        this.id = id;
         this.nome = nome;
         this.email = email;
     }
@@ -24,6 +26,13 @@ public class Cliente {
 
     public String getEmail() {
         return email;
+    }
+
+    public void setId(int id) {
+        if (this.id != 0) {
+            throw new IllegalStateException("ID do cliente já foi definido.");
+        }
+        this.id = id;
     }
 
     @Override

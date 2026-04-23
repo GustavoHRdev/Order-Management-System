@@ -8,9 +8,13 @@ import java.util.List;
 public class InMemoryProdutoRepository implements ProdutoRepository {
 
     private final List<Produto> produtos = new ArrayList<>();
+    private int nextId = 1;
 
     @Override
     public void salvar(Produto produto) {
+        if (produto.getId() == 0) {
+            produto.setId(nextId++);
+        }
         produtos.add(produto);
     }
 
@@ -20,14 +24,13 @@ public class InMemoryProdutoRepository implements ProdutoRepository {
     }
 
     @Override
-    public Produto buscarPorId(int id) {
+    public java.util.Optional<Produto> buscarPorId(int id) {
         for (Produto produto : produtos) {
             if (produto.getId() == id) {
-                return produto;
+                return java.util.Optional.of(produto);
             }
         }
-
-        throw new IllegalArgumentException("Produto inválido!");
+        return java.util.Optional.empty();
     }
 
     @Override

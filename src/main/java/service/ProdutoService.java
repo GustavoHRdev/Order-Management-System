@@ -13,7 +13,7 @@ public class ProdutoService {
         this.repository = repository;
     }
 
-    public void cadastrarProduto(String nome, double preco) {
+    public Produto cadastrarProduto(String nome, double preco) {
 
         if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("Nome do produto inválido.");
@@ -25,9 +25,15 @@ public class ProdutoService {
 
         Produto produto = new Produto(nome, preco);
         repository.salvar(produto);
+        return produto;
     }
 
     public List<Produto> listarProdutos() {
         return repository.listar();
+    }
+
+    public Produto buscarProdutoPorId(int id) {
+        return repository.buscarPorId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto inválido!"));
     }
 }
