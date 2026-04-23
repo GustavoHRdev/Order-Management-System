@@ -1,38 +1,18 @@
 package repository;
 
 import model.Pedido;
-import model.StatusPedido;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class PedidoRepository {
+public interface PedidoRepository {
 
-    private final List<Pedido> pedidos = new ArrayList<>();
+    void salvar(Pedido pedido);
 
-    public void salvar(Pedido pedido) {
-        pedidos.add(pedido);
-    }
+    List<Pedido> listar();
 
-    public List<Pedido> listar() {
-        return new ArrayList<>(pedidos);
-    }
+    Pedido buscarPorId(int id);
 
-    public Pedido buscarPorId(int id) {
-        for (Pedido pedido : pedidos) {
-            if (pedido.getId() == id) {
-                return pedido;
-            }
-        }
+    boolean estaVazio();
 
-        throw new IllegalArgumentException("Pedido inválido!");
-    }
-
-    public boolean estaVazio() {
-        return pedidos.isEmpty();
-    }
-
-    public void removerEntregues() {
-        pedidos.removeIf(p -> p.getStatus() == StatusPedido.ENTREGUE);
-    }
+    void removerEntregues();
 }

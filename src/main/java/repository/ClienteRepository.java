@@ -2,31 +2,15 @@ package repository;
 
 import model.Cliente;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteRepository {
+public interface ClienteRepository {
 
-    private  final List<Cliente> clientes = new ArrayList<>();
+    void salvar(Cliente cliente);
 
-    public void salvar(Cliente cliente){
-        clientes.add(cliente);
-    }
-    public List<Cliente> listar(){
-        return new ArrayList<>(clientes);
-    }
+    List<Cliente> listar();
 
-    public Cliente buscarPorId(int id) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getId() == id) {
-                return cliente;
-            }
-        }
+    Cliente buscarPorId(int id);
 
-        throw new IllegalArgumentException("Cliente inválido!");
-    }
-
-    public boolean estaVazio() {
-        return clientes.isEmpty();
-    }
+    boolean estaVazio();
 }

@@ -2,32 +2,15 @@ package repository;
 
 import model.Produto;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ProdutoRepository {
+public interface ProdutoRepository {
 
-    private final List<Produto> produtos = new ArrayList<>();
+    void salvar(Produto produto);
 
-    public void salvar(Produto produto) {
-        produtos.add(produto);
-    }
+    List<Produto> listar();
 
-    public List<Produto> listar() {
-        return new ArrayList<>(produtos);
-    }
+    Produto buscarPorId(int id);
 
-    public Produto buscarPorId(int id) {
-        for (Produto produto : produtos) {
-            if (produto.getId() == id) {
-                return produto;
-            }
-        }
-
-        throw new IllegalArgumentException("Produto inválido!");
-    }
-
-    public boolean estaVazio() {
-        return produtos.isEmpty();
-    }
+    boolean estaVazio();
 }
