@@ -17,11 +17,14 @@ public class ProdutoRepository {
         return new ArrayList<>(produtos);
     }
 
-    public Produto buscarPorIndex(int index) {
-        if (index < 0 || index >= produtos.size()) {
-            throw new IllegalArgumentException("Produto inválido!");
+    public Produto buscarPorId(int id) {
+        for (Produto produto : produtos) {
+            if (produto.getId() == id) {
+                return produto;
+            }
         }
-        return produtos.get(index);
+
+        throw new IllegalArgumentException("Produto inválido!");
     }
 
     public boolean estaVazio() {

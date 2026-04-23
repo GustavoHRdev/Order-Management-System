@@ -21,13 +21,13 @@ public class PedidoService {
         this.produtoRepository = produtoRepository;
     }
 
-    public Pedido criarPedido(int clienteIndex) {
+    public Pedido criarPedido(int clienteId) {
 
         if (clienteRepository.estaVazio()) {
             throw new IllegalStateException("Nenhum cliente cadastrado.");
         }
 
-        Cliente cliente = clienteRepository.buscarPorIndex(clienteIndex);
+        Cliente cliente = clienteRepository.buscarPorId(clienteId);
 
         Pedido pedido = new Pedido(cliente);
 
@@ -36,7 +36,7 @@ public class PedidoService {
         return pedido;
     }
 
-    public void adicionarItem(int pedidoIndex, int produtoIndex, int quantidade) {
+    public void adicionarItem(int pedidoId, int produtoId, int quantidade) {
 
         if (pedidoRepository.estaVazio()) {
             throw new IllegalStateException("Nenhum pedido cadastrado.");
@@ -50,8 +50,12 @@ public class PedidoService {
             throw new IllegalArgumentException("Quantidade inválida.");
         }
 
-        Pedido pedido = pedidoRepository.buscarPorIndex(pedidoIndex);
-        Produto produto = produtoRepository.buscarPorIndex(produtoIndex);
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        if (pedido.getStatus() != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Nao e permitido alterar itens de um pedido que nao esta pendente.");
+        }
+
+        Produto produto = produtoRepository.buscarPorId(produtoId);
 
         ItemPedido item = new ItemPedido(produto, quantidade);
         pedido.adicionarItem(item);
@@ -60,7 +64,7 @@ public class PedidoService {
     public List<Pedido> listarPedidos() {
         return pedidoRepository.listar();
     }
-    public void atualizarStatus(int pedidoIndex, StatusPedido status) {
+    public void atualizarStatus(int pedidoId, StatusPedido status) {
 
         if (pedidoRepository.estaVazio()) {
             throw new IllegalStateException("Nenhum pedido cadastrado.");
@@ -70,14 +74,48 @@ public class PedidoService {
             throw new IllegalArgumentException("Status inválido.");
         }
 
-        Pedido pedido = pedidoRepository.buscarPorIndex(pedidoIndex);
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        validarTransicaoStatus(pedido, status);
 
         pedido.atualizarStatus(status);
     }
+
     public void removerPedidosEntregues() {
         if (pedidoRepository.estaVazio()) {
             throw new IllegalStateException("Nenhum pedido cadastrado.");
         }
         pedidoRepository.removerEntregues();
+    }
+
+    private void validarTransicaoStatus(Pedido pedido, StatusPedido novoStatus) {
+        StatusPedido statusAtual = pedido.getStatus();
+
+        if (statusAtual == StatusPedido.ENTREGUE || statusAtual == StatusPedido.CANCELADO) {
+            throw new IllegalStateException("Nao e permitido alterar um pedido finalizado.");
+        }
+
+        if (novoStatus == StatusPedido.PENDENTE && statusAtual != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Nao e permitido retornar o pedido para pendente.");
+        }
+
+        if (novoStatus != StatusPedido.CANCELADO && !pedido.temItens()) {
+            throw new IllegalStateException("Nao e permitido avancar o status de um pedido sem itens.");
+        }
+
+        if (statusAtual == StatusPedido.PENDENTE
+                && novoStatus != StatusPedido.PROCESSANDO
+                && novoStatus != StatusPedido.CANCELADO) {
+            throw new IllegalStateException("Transicao de status invalida.");
+        }
+
+        if (statusAtual == StatusPedido.PROCESSANDO
+                && novoStatus != StatusPedido.ENVIADO
+                && novoStatus != StatusPedido.CANCELADO) {
+            throw new IllegalStateException("Transicao de status invalida.");
+        }
+
+        if (statusAtual == StatusPedido.ENVIADO && novoStatus != StatusPedido.ENTREGUE) {
+            throw new IllegalStateException("Transicao de status invalida.");
+        }
     }
 }

@@ -16,11 +16,14 @@ public class ClienteRepository {
         return new ArrayList<>(clientes);
     }
 
-    public Cliente buscarPorIndex(int index) {
-        if (index < 0 || index >= clientes.size()) {
-            throw new IllegalArgumentException("Cliente inválido!");
+    public Cliente buscarPorId(int id) {
+        for (Cliente cliente : clientes) {
+            if (cliente.getId() == id) {
+                return cliente;
+            }
         }
-        return clientes.get(index);
+
+        throw new IllegalArgumentException("Cliente inválido!");
     }
 
     public boolean estaVazio() {

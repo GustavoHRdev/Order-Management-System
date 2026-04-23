@@ -11,8 +11,17 @@ public class Pedido {
     private Cliente cliente;
     private List<ItemPedido> itens;
     private StatusPedido status;
+
+    public int getId() {
+        return id;
+    }
+
     public StatusPedido getStatus() {
         return status;
+    }
+
+    public boolean temItens() {
+        return !itens.isEmpty();
     }
 
     public Pedido(Cliente cliente) {

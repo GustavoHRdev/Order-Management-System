@@ -22,7 +22,7 @@ public class PedidoServiceTest {
                 new ProdutoRepository()
         );
 
-        assertThrows(IllegalStateException.class, () -> service.criarPedido(0));
+        assertThrows(IllegalStateException.class, () -> service.criarPedido(1));
     }
 
     @Test
@@ -33,10 +33,11 @@ public class PedidoServiceTest {
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
+        int clienteId = clienteService.listarClientes().get(0).getId();
 
         PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
 
-        service.criarPedido(0);
+        service.criarPedido(clienteId);
 
         List<Pedido> pedidos = service.listarPedidos();
         assertEquals(1, pedidos.size());
@@ -53,11 +54,13 @@ public class PedidoServiceTest {
 
         clienteService.cadastrarCliente("Ana", "ana@example.com");
         produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
 
         PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
-        service.criarPedido(0);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
 
-        service.adicionarItem(0, 0, 2);
+        service.adicionarItem(pedidoCriado.getId(), produtoId, 2);
 
         Pedido pedido = service.listarPedidos().get(0);
         assertEquals(100.0, pedido.calcularTotal(), 0.0001);
@@ -74,12 +77,14 @@ public class PedidoServiceTest {
 
         clienteService.cadastrarCliente("Ana", "ana@example.com");
         produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
 
         PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
-        service.criarPedido(0);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
 
-        assertThrows(IllegalArgumentException.class, () -> service.adicionarItem(0, 0, 0));
-        assertThrows(IllegalArgumentException.class, () -> service.adicionarItem(0, 0, -1));
+        assertThrows(IllegalArgumentException.class, () -> service.adicionarItem(pedidoCriado.getId(), produtoId, 0));
+        assertThrows(IllegalArgumentException.class, () -> service.adicionarItem(pedidoCriado.getId(), produtoId, -1));
     }
 
     @Test
@@ -90,11 +95,100 @@ public class PedidoServiceTest {
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
+        int clienteId = clienteService.listarClientes().get(0).getId();
 
         PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
-        service.criarPedido(0);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
 
-        assertThrows(IllegalArgumentException.class, () -> service.atualizarStatus(0, null));
+        assertThrows(IllegalArgumentException.class, () -> service.atualizarStatus(pedidoCriado.getId(), null));
+    }
+
+    @Test
+    void atualizarStatusDeveFalharQuandoPedidoNaoTemItens() {
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ProdutoRepository produtoRepository = new ProdutoRepository();
+        PedidoRepository pedidoRepository = new PedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+        int clienteId = clienteService.listarClientes().get(0).getId();
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
+
+        assertThrows(IllegalStateException.class,
+                () -> service.atualizarStatus(pedidoCriado.getId(), StatusPedido.PROCESSANDO));
+    }
+
+    @Test
+    void atualizarStatusDevePermitirFluxoValido() {
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ProdutoRepository produtoRepository = new ProdutoRepository();
+        PedidoRepository pedidoRepository = new PedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
+
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+        produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
+        service.adicionarItem(pedidoCriado.getId(), produtoId, 1);
+
+        service.atualizarStatus(pedidoCriado.getId(), StatusPedido.PROCESSANDO);
+        service.atualizarStatus(pedidoCriado.getId(), StatusPedido.ENVIADO);
+        service.atualizarStatus(pedidoCriado.getId(), StatusPedido.ENTREGUE);
+
+        Pedido pedidoAtualizado = service.listarPedidos().get(0);
+        assertEquals(StatusPedido.ENTREGUE, pedidoAtualizado.getStatus());
+    }
+
+    @Test
+    void atualizarStatusDeveFalharComTransicaoInvalida() {
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ProdutoRepository produtoRepository = new ProdutoRepository();
+        PedidoRepository pedidoRepository = new PedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
+
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+        produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
+        service.adicionarItem(pedidoCriado.getId(), produtoId, 1);
+
+        assertThrows(IllegalStateException.class,
+                () -> service.atualizarStatus(pedidoCriado.getId(), StatusPedido.ENTREGUE));
+    }
+
+    @Test
+    void adicionarItemDeveFalharQuandoPedidoNaoEstaPendente() {
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ProdutoRepository produtoRepository = new ProdutoRepository();
+        PedidoRepository pedidoRepository = new PedidoRepository();
+
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
+
+        clienteService.cadastrarCliente("Ana", "ana@example.com");
+        produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
+
+        PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
+        Pedido pedidoCriado = service.criarPedido(clienteId);
+        service.adicionarItem(pedidoCriado.getId(), produtoId, 1);
+        service.atualizarStatus(pedidoCriado.getId(), StatusPedido.PROCESSANDO);
+
+        assertThrows(IllegalStateException.class,
+                () -> service.adicionarItem(pedidoCriado.getId(), produtoId, 1));
     }
 
     @Test
@@ -104,14 +198,23 @@ public class PedidoServiceTest {
         PedidoRepository pedidoRepository = new PedidoRepository();
 
         ClienteService clienteService = new ClienteService(clienteRepository);
+        ProdutoService produtoService = new ProdutoService(produtoRepository);
         clienteService.cadastrarCliente("Ana", "ana@example.com");
+        produtoService.cadastrarProduto("Mouse", 50.0);
+        int clienteId = clienteService.listarClientes().get(0).getId();
+        int produtoId = produtoService.listarProdutos().get(0).getId();
 
         PedidoService service = new PedidoService(pedidoRepository, clienteRepository, produtoRepository);
 
-        service.criarPedido(0);
-        service.criarPedido(0);
+        Pedido pedidoEntregue = service.criarPedido(clienteId);
+        Pedido outroPedido = service.criarPedido(clienteId);
 
-        service.atualizarStatus(0, StatusPedido.ENTREGUE);
+        service.adicionarItem(pedidoEntregue.getId(), produtoId, 1);
+        service.adicionarItem(outroPedido.getId(), produtoId, 1);
+
+        service.atualizarStatus(pedidoEntregue.getId(), StatusPedido.PROCESSANDO);
+        service.atualizarStatus(pedidoEntregue.getId(), StatusPedido.ENVIADO);
+        service.atualizarStatus(pedidoEntregue.getId(), StatusPedido.ENTREGUE);
         service.removerPedidosEntregues();
 
         assertEquals(1, service.listarPedidos().size());

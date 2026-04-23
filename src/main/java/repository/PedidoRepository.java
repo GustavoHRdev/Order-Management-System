@@ -18,11 +18,14 @@ public class PedidoRepository {
         return new ArrayList<>(pedidos);
     }
 
-    public Pedido buscarPorIndex(int index) {
-        if (index < 0 || index >= pedidos.size()) {
-            throw new IllegalArgumentException("Pedido inválido!");
+    public Pedido buscarPorId(int id) {
+        for (Pedido pedido : pedidos) {
+            if (pedido.getId() == id) {
+                return pedido;
+            }
         }
-        return pedidos.get(index);
+
+        throw new IllegalArgumentException("Pedido inválido!");
     }
 
     public boolean estaVazio() {
