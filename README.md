@@ -259,15 +259,6 @@ As próximas melhorias que continuam fazendo sentido para a evolução do projet
 - evoluir a infraestrutura HTTP para um framework web quando fizer sentido
 - considerar autenticação/autorização se o projeto passar a ter uso multiusuário
 
-## Próximos passos naturais
-
-A sequência mais coerente de evolução, a partir do estado atual, é:
-
-1. consolidar a API REST com testes e DTOs
-2. melhorar a experiência de execução e observabilidade
-3. refinar a modelagem e o tratamento de erros
-4. só depois avaliar uma migração para framework web mais robusto
-
 ## Observação
 
 O projeto foi evoluído de forma incremental para preservar clareza arquitetural. A intenção não é apenas “ter funcionalidades”, mas construir uma base que deixe explícito como cada mudança foi introduzida e por quê.
