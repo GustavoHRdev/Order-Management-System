@@ -1,11 +1,20 @@
 package api;
 
+import api.dto.request.AdicionarItemRequest;
+import api.dto.request.AtualizarStatusRequest;
+import api.dto.request.CriarClienteRequest;
+import api.dto.request.CriarPedidoRequest;
+import api.dto.request.CriarProdutoRequest;
+import api.dto.response.ApiErrorResponse;
+import api.dto.response.ClienteResponse;
+import api.dto.response.PedidoResponse;
+import api.dto.response.ProdutoResponse;
 import app.ApplicationContext;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import model.Cliente;
-import model.ItemPedido;
 import model.Pedido;
 import model.Produto;
 import model.StatusPedido;
@@ -15,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -47,6 +57,10 @@ public class RestServer {
 
     public void stop() {
         httpServer.stop(0);
+    }
+
+    public int getPort() {
+        return httpServer.getAddress().getPort();
     }
 
     private void registerContexts() {
@@ -85,7 +99,7 @@ public class RestServer {
                 return;
             }
 
-            writeJson(exchange, 404, new ErrorResponse("Rota não encontrada."));
+            writeRouteNotFound(exchange);
         } catch (Exception e) {
             handleException(exchange, e);
         }
@@ -121,7 +135,7 @@ public class RestServer {
                 return;
             }
 
-            writeJson(exchange, 404, new ErrorResponse("Rota não encontrada."));
+            writeRouteNotFound(exchange);
         } catch (Exception e) {
             handleException(exchange, e);
         }
@@ -174,7 +188,7 @@ public class RestServer {
                 return;
             }
 
-            writeJson(exchange, 404, new ErrorResponse("Rota não encontrada."));
+            writeRouteNotFound(exchange);
         } catch (Exception e) {
             handleException(exchange, e);
         }
@@ -195,13 +209,34 @@ public class RestServer {
     }
 
     private void handleException(HttpExchange exchange, Exception exception) throws IOException {
-        if (exception instanceof IllegalArgumentException || exception instanceof IllegalStateException) {
-            int status = NOT_FOUND_MESSAGES.contains(exception.getMessage()) ? 404 : 400;
-            writeJson(exchange, status, new ErrorResponse(exception.getMessage()));
+        if (exception instanceof JsonProcessingException) {
+            writeError(exchange, 400, "Bad Request", "JSON inválido.");
             return;
         }
 
-        writeJson(exchange, 500, new ErrorResponse("Erro interno do servidor."));
+        if (exception instanceof IllegalArgumentException || exception instanceof IllegalStateException) {
+            int status = NOT_FOUND_MESSAGES.contains(exception.getMessage()) ? 404 : 400;
+            String error = status == 404 ? "Not Found" : "Bad Request";
+            writeError(exchange, status, error, exception.getMessage());
+            return;
+        }
+
+        writeError(exchange, 500, "Internal Server Error", "Erro interno do servidor.");
+    }
+
+    private void writeRouteNotFound(HttpExchange exchange) throws IOException {
+        writeError(exchange, 404, "Not Found", "Rota não encontrada.");
+    }
+
+    private void writeError(HttpExchange exchange, int statusCode, String error, String message) throws IOException {
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now().toString(),
+                statusCode,
+                error,
+                message,
+                exchange.getRequestURI().getPath()
+        );
+        writeJson(exchange, statusCode, response);
     }
 
     private void writeJson(HttpExchange exchange, int statusCode, Object body) throws IOException {
@@ -210,66 +245,6 @@ public class RestServer {
         exchange.sendResponseHeaders(statusCode, response.length);
         try (OutputStream outputStream = exchange.getResponseBody()) {
             outputStream.write(response);
-        }
-    }
-
-    public record CriarClienteRequest(String nome, String email) {
-    }
-
-    public record CriarProdutoRequest(String nome, double preco) {
-    }
-
-    public record CriarPedidoRequest(int clienteId) {
-    }
-
-    public record AdicionarItemRequest(int produtoId, int quantidade) {
-    }
-
-    public record AtualizarStatusRequest(String status) {
-    }
-
-    public record ErrorResponse(String message) {
-    }
-
-    public record ClienteResponse(int id, String nome, String email) {
-        public static ClienteResponse from(Cliente cliente) {
-            return new ClienteResponse(cliente.getId(), cliente.getNome(), cliente.getEmail());
-        }
-    }
-
-    public record ProdutoResponse(int id, String nome, double preco) {
-        public static ProdutoResponse from(Produto produto) {
-            return new ProdutoResponse(produto.getId(), produto.getNome(), produto.getPreco());
-        }
-    }
-
-    public record ItemPedidoResponse(int produtoId, String produtoNome, double precoUnitario, int quantidade, double subtotal) {
-        public static ItemPedidoResponse from(ItemPedido itemPedido) {
-            return new ItemPedidoResponse(
-                    itemPedido.getProduto().getId(),
-                    itemPedido.getProduto().getNome(),
-                    itemPedido.getProduto().getPreco(),
-                    itemPedido.getQuantidade(),
-                    itemPedido.calcularSubtotal()
-            );
-        }
-    }
-
-    public record PedidoResponse(int id,
-                                 int clienteId,
-                                 String clienteNome,
-                                 String status,
-                                 List<ItemPedidoResponse> itens,
-                                 double total) {
-        public static PedidoResponse from(Pedido pedido) {
-            return new PedidoResponse(
-                    pedido.getId(),
-                    pedido.getCliente().getId(),
-                    pedido.getCliente().getNome(),
-                    pedido.getStatus().name(),
-                    pedido.getItens().stream().map(ItemPedidoResponse::from).toList(),
-                    pedido.calcularTotal()
-            );
         }
     }
 }
