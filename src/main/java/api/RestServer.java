@@ -23,9 +23,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class RestServer {
@@ -74,28 +76,38 @@ public class RestServer {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
 
-            if ("/clientes".equals(path) && "GET".equalsIgnoreCase(method)) {
-                List<ClienteResponse> response = applicationContext.getClienteService()
-                        .listarClientes()
-                        .stream()
-                        .map(ClienteResponse::from)
-                        .toList();
-                writeJson(exchange, 200, response);
+            if ("/clientes".equals(path)) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    List<ClienteResponse> response = applicationContext.getClienteService()
+                            .listarClientes()
+                            .stream()
+                            .map(ClienteResponse::from)
+                            .toList();
+                    writeJson(exchange, 200, response);
+                    return;
+                }
+
+                if ("POST".equalsIgnoreCase(method)) {
+                    CriarClienteRequest request = readBody(exchange, CriarClienteRequest.class);
+                    Cliente cliente = applicationContext.getClienteService()
+                            .cadastrarCliente(request.nome(), request.email());
+                    writeCreated(exchange, "/clientes/" + cliente.getId(), ClienteResponse.from(cliente));
+                    return;
+                }
+
+                writeMethodNotAllowed(exchange, "GET, POST");
                 return;
             }
 
-            if ("/clientes".equals(path) && "POST".equalsIgnoreCase(method)) {
-                CriarClienteRequest request = readBody(exchange, CriarClienteRequest.class);
-                Cliente cliente = applicationContext.getClienteService()
-                        .cadastrarCliente(request.nome(), request.email());
-                writeJson(exchange, 201, ClienteResponse.from(cliente));
-                return;
-            }
+            if (path.matches("^/clientes/\\d+$")) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    int clienteId = parseId(path, "/clientes/");
+                    Cliente cliente = applicationContext.getClienteService().buscarClientePorId(clienteId);
+                    writeJson(exchange, 200, ClienteResponse.from(cliente));
+                    return;
+                }
 
-            if (path.startsWith("/clientes/") && "GET".equalsIgnoreCase(method)) {
-                int clienteId = parseId(path, "/clientes/");
-                Cliente cliente = applicationContext.getClienteService().buscarClientePorId(clienteId);
-                writeJson(exchange, 200, ClienteResponse.from(cliente));
+                writeMethodNotAllowed(exchange, "GET");
                 return;
             }
 
@@ -110,28 +122,38 @@ public class RestServer {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
 
-            if ("/produtos".equals(path) && "GET".equalsIgnoreCase(method)) {
-                List<ProdutoResponse> response = applicationContext.getProdutoService()
-                        .listarProdutos()
-                        .stream()
-                        .map(ProdutoResponse::from)
-                        .toList();
-                writeJson(exchange, 200, response);
+            if ("/produtos".equals(path)) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    List<ProdutoResponse> response = applicationContext.getProdutoService()
+                            .listarProdutos()
+                            .stream()
+                            .map(ProdutoResponse::from)
+                            .toList();
+                    writeJson(exchange, 200, response);
+                    return;
+                }
+
+                if ("POST".equalsIgnoreCase(method)) {
+                    CriarProdutoRequest request = readBody(exchange, CriarProdutoRequest.class);
+                    Produto produto = applicationContext.getProdutoService()
+                            .cadastrarProduto(request.nome(), request.preco());
+                    writeCreated(exchange, "/produtos/" + produto.getId(), ProdutoResponse.from(produto));
+                    return;
+                }
+
+                writeMethodNotAllowed(exchange, "GET, POST");
                 return;
             }
 
-            if ("/produtos".equals(path) && "POST".equalsIgnoreCase(method)) {
-                CriarProdutoRequest request = readBody(exchange, CriarProdutoRequest.class);
-                Produto produto = applicationContext.getProdutoService()
-                        .cadastrarProduto(request.nome(), request.preco());
-                writeJson(exchange, 201, ProdutoResponse.from(produto));
-                return;
-            }
+            if (path.matches("^/produtos/\\d+$")) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    int produtoId = parseId(path, "/produtos/");
+                    Produto produto = applicationContext.getProdutoService().buscarProdutoPorId(produtoId);
+                    writeJson(exchange, 200, ProdutoResponse.from(produto));
+                    return;
+                }
 
-            if (path.startsWith("/produtos/") && "GET".equalsIgnoreCase(method)) {
-                int produtoId = parseId(path, "/produtos/");
-                Produto produto = applicationContext.getProdutoService().buscarProdutoPorId(produtoId);
-                writeJson(exchange, 200, ProdutoResponse.from(produto));
+                writeMethodNotAllowed(exchange, "GET");
                 return;
             }
 
@@ -146,45 +168,66 @@ public class RestServer {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod();
 
-            if ("/pedidos".equals(path) && "GET".equalsIgnoreCase(method)) {
-                List<PedidoResponse> response = applicationContext.getPedidoService()
-                        .listarPedidos()
-                        .stream()
-                        .map(PedidoResponse::from)
-                        .toList();
-                writeJson(exchange, 200, response);
+            if ("/pedidos".equals(path)) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    List<PedidoResponse> response = applicationContext.getPedidoService()
+                            .listarPedidos()
+                            .stream()
+                            .map(PedidoResponse::from)
+                            .toList();
+                    writeJson(exchange, 200, response);
+                    return;
+                }
+
+                if ("POST".equalsIgnoreCase(method)) {
+                    CriarPedidoRequest request = readBody(exchange, CriarPedidoRequest.class);
+                    Pedido pedido = applicationContext.getPedidoService().criarPedido(request.clienteId());
+                    writeCreated(exchange, "/pedidos/" + pedido.getId(), PedidoResponse.from(pedido));
+                    return;
+                }
+
+                writeMethodNotAllowed(exchange, "GET, POST");
                 return;
             }
 
-            if ("/pedidos".equals(path) && "POST".equalsIgnoreCase(method)) {
-                CriarPedidoRequest request = readBody(exchange, CriarPedidoRequest.class);
-                Pedido pedido = applicationContext.getPedidoService().criarPedido(request.clienteId());
-                writeJson(exchange, 201, PedidoResponse.from(pedido));
+            if (path.matches("^/pedidos/\\d+$")) {
+                if ("GET".equalsIgnoreCase(method)) {
+                    int pedidoId = parseId(path, "/pedidos/");
+                    Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
+                    writeJson(exchange, 200, PedidoResponse.from(pedido));
+                    return;
+                }
+
+                writeMethodNotAllowed(exchange, "GET");
                 return;
             }
 
-            if (path.matches("^/pedidos/\\d+$") && "GET".equalsIgnoreCase(method)) {
-                int pedidoId = parseId(path, "/pedidos/");
-                Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
-                writeJson(exchange, 200, PedidoResponse.from(pedido));
+            if (path.matches("^/pedidos/\\d+/itens$")) {
+                if ("POST".equalsIgnoreCase(method)) {
+                    int pedidoId = parseId(path.substring(0, path.lastIndexOf("/itens")), "/pedidos/");
+                    AdicionarItemRequest request = readBody(exchange, AdicionarItemRequest.class);
+                    applicationContext.getPedidoService().adicionarItem(pedidoId, request.produtoId(), request.quantidade());
+                    Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
+                    writeJson(exchange, 200, PedidoResponse.from(pedido));
+                    return;
+                }
+
+                writeMethodNotAllowed(exchange, "POST");
                 return;
             }
 
-            if (path.matches("^/pedidos/\\d+/itens$") && "POST".equalsIgnoreCase(method)) {
-                int pedidoId = parseId(path.substring(0, path.lastIndexOf("/itens")), "/pedidos/");
-                AdicionarItemRequest request = readBody(exchange, AdicionarItemRequest.class);
-                applicationContext.getPedidoService().adicionarItem(pedidoId, request.produtoId(), request.quantidade());
-                Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
-                writeJson(exchange, 200, PedidoResponse.from(pedido));
-                return;
-            }
+            if (path.matches("^/pedidos/\\d+/status$")) {
+                if ("PATCH".equalsIgnoreCase(method)) {
+                    int pedidoId = parseId(path.substring(0, path.lastIndexOf("/status")), "/pedidos/");
+                    AtualizarStatusRequest request = readBody(exchange, AtualizarStatusRequest.class);
+                    StatusPedido novoStatus = parseStatus(request.status());
+                    applicationContext.getPedidoService().atualizarStatus(pedidoId, novoStatus);
+                    Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
+                    writeJson(exchange, 200, PedidoResponse.from(pedido));
+                    return;
+                }
 
-            if (path.matches("^/pedidos/\\d+/status$") && "PATCH".equalsIgnoreCase(method)) {
-                int pedidoId = parseId(path.substring(0, path.lastIndexOf("/status")), "/pedidos/");
-                AtualizarStatusRequest request = readBody(exchange, AtualizarStatusRequest.class);
-                applicationContext.getPedidoService().atualizarStatus(pedidoId, StatusPedido.valueOf(request.status()));
-                Pedido pedido = applicationContext.getPedidoService().buscarPedidoPorId(pedidoId);
-                writeJson(exchange, 200, PedidoResponse.from(pedido));
+                writeMethodNotAllowed(exchange, "PATCH");
                 return;
             }
 
@@ -200,6 +243,20 @@ public class RestServer {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("ID inválido.");
         }
+    }
+
+    private StatusPedido parseStatus(String status) {
+        return Optional.ofNullable(status)
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .map(value -> {
+                    try {
+                        return StatusPedido.valueOf(value);
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Status inválido.");
+                    }
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Status inválido."));
     }
 
     private <T> T readBody(HttpExchange exchange, Class<T> type) throws IOException {
@@ -228,6 +285,11 @@ public class RestServer {
         writeError(exchange, 404, "Not Found", "Rota não encontrada.");
     }
 
+    private void writeMethodNotAllowed(HttpExchange exchange, String allowHeader) throws IOException {
+        exchange.getResponseHeaders().set("Allow", allowHeader);
+        writeError(exchange, 405, "Method Not Allowed", "Método não permitido.");
+    }
+
     private void writeError(HttpExchange exchange, int statusCode, String error, String message) throws IOException {
         ApiErrorResponse response = new ApiErrorResponse(
                 Instant.now().toString(),
@@ -237,6 +299,13 @@ public class RestServer {
                 exchange.getRequestURI().getPath()
         );
         writeJson(exchange, statusCode, response);
+    }
+
+    private void writeCreated(HttpExchange exchange, String resourcePath, Object body) throws IOException {
+        String authority = exchange.getLocalAddress().getHostString() + ":" + exchange.getLocalAddress().getPort();
+        URI location = URI.create("http://" + authority + resourcePath);
+        exchange.getResponseHeaders().set("Location", location.toString());
+        writeJson(exchange, 201, body);
     }
 
     private void writeJson(HttpExchange exchange, int statusCode, Object body) throws IOException {

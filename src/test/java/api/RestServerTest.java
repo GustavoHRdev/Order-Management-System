@@ -60,8 +60,10 @@ public class RestServerTest {
         );
 
         JsonNode body = objectMapper.readTree(response.body());
+        String location = response.headers().firstValue("Location").orElseThrow();
 
         assertEquals(201, response.statusCode());
+        assertTrue(location.endsWith("/clientes/" + body.get("id").asInt()));
         assertEquals("Ana", body.get("nome").asText());
         assertEquals("ana@example.com", body.get("email").asText());
         assertTrue(body.get("id").asInt() > 0);
@@ -139,6 +141,44 @@ public class RestServerTest {
         assertEquals(400, response.statusCode());
         assertEquals("Bad Request", body.get("error").asText());
         assertEquals("JSON inválido.", body.get("message").asText());
+    }
+
+    @Test
+    void getClientesComMetodoNaoPermitidoDeveRetornar405() throws Exception {
+        HttpResponse<String> response = sendJsonRequest(
+                "DELETE",
+                "/clientes",
+                ""
+        );
+
+        JsonNode body = objectMapper.readTree(response.body());
+
+        assertEquals(405, response.statusCode());
+        assertEquals("GET, POST", response.headers().firstValue("Allow").orElseThrow());
+        assertEquals("Method Not Allowed", body.get("error").asText());
+        assertEquals("Método não permitido.", body.get("message").asText());
+    }
+
+    @Test
+    void patchStatusDeveRetornar400QuandoStatusEhInvalido() throws Exception {
+        int clienteId = createCliente("Ana", "ana@example.com");
+        int pedidoId = createPedido(clienteId);
+
+        HttpResponse<String> response = sendJsonRequest(
+                "PATCH",
+                "/pedidos/" + pedidoId + "/status",
+                """
+                {
+                  "status": "QUALQUER_COISA"
+                }
+                """
+        );
+
+        JsonNode body = objectMapper.readTree(response.body());
+
+        assertEquals(400, response.statusCode());
+        assertEquals("Bad Request", body.get("error").asText());
+        assertEquals("Status inválido.", body.get("message").asText());
     }
 
     private int createCliente(String nome, String email) throws Exception {
