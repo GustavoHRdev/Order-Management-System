@@ -6,8 +6,9 @@ public class ApiMain {
 
     public static void main(String[] args) {
         ApplicationContext applicationContext = ApplicationContext.createDefault();
-        RestServer server = new RestServer(applicationContext, 8080);
+        int port = Integer.parseInt(System.getProperty("api.port", "8080"));
+        RestServer server = new RestServer(applicationContext, port);
         server.start();
-        System.out.println("API REST iniciada em http://localhost:8080");
+        System.out.println("API REST iniciada em http://localhost:" + port);
     }
 }
