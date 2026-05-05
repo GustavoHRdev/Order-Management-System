@@ -110,23 +110,62 @@ No Linux/macOS:
 
 ### Rodar a aplicação de console
 
-Hoje o caminho mais simples é abrir o projeto na IDE e executar:
+Windows:
 
-- `app.Main`
+```bash
+mvnw.cmd compile exec:java@run-cli
+```
+
+Linux/macOS:
+
+```bash
+./mvnw compile exec:java@run-cli
+```
+
+Opcionalmente, ainda e possivel executar `app.Main` pela IDE.
 
 Essa entrada usa o `ApplicationContext`, inicializa o banco H2 e sobe o fluxo CLI.
 
 ### Rodar a API REST
 
-Execute na IDE:
+Windows:
 
-- `app.ApiMain`
+```bash
+mvnw.cmd compile exec:java@run-api
+```
+
+Linux/macOS:
+
+```bash
+./mvnw compile exec:java@run-api
+```
+
+Opcionalmente, ainda e possivel executar `app.ApiMain` pela IDE.
+
+Se a porta `8080` ja estiver em uso, rode com outra porta:
+
+```bash
+mvnw.cmd "-Dapi.port=8081" compile exec:java@run-api
+```
 
 A API sobe em:
 
 ```text
 http://localhost:8080
 ```
+
+## Documentacao da API
+
+A documentacao executavel da API fica em:
+
+- [docs/API-REST.md](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/API-REST.md)
+- [docs/postman/Order-Management-System.postman_collection.json](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/postman/Order-Management-System.postman_collection.json)
+
+Ela inclui:
+- fluxo completo com `curl`
+- exemplos de payload e resposta
+- cenarios de erro
+- collection importavel no Postman
 
 ## Endpoints REST
 
@@ -135,6 +174,10 @@ http://localhost:8080
 - `GET /clientes`
 - `GET /clientes/{id}`
 - `POST /clientes`
+
+Respostas:
+- `201 Created` em criacao, com header `Location`
+- `405 Method Not Allowed` para metodo nao suportado na rota
 
 Exemplo de payload:
 
@@ -150,6 +193,10 @@ Exemplo de payload:
 - `GET /produtos`
 - `GET /produtos/{id}`
 - `POST /produtos`
+
+Respostas:
+- `201 Created` em criacao, com header `Location`
+- `405 Method Not Allowed` para metodo nao suportado na rota
 
 Exemplo de payload:
 
@@ -167,6 +214,13 @@ Exemplo de payload:
 - `POST /pedidos`
 - `POST /pedidos/{id}/itens`
 - `PATCH /pedidos/{id}/status`
+
+Respostas:
+- `201 Created` em criacao do pedido, com header `Location`
+- `200 OK` ao adicionar item e atualizar status
+- `400 Bad Request` para JSON, ID ou status invalidos
+- `404 Not Found` para entidade inexistente ou rota inexistente
+- `405 Method Not Allowed` para metodo nao suportado na rota
 
 Criar pedido:
 
@@ -251,11 +305,9 @@ As próximas melhorias que continuam fazendo sentido para a evolução do projet
 - melhorar tratamento de erros HTTP com estrutura padronizada
 - extrair casos de uso mais explícitos se os services crescerem
 - adicionar testes de integração para a camada REST
-- criar comandos Maven para facilitar execução do console e da API sem depender da IDE
 - revisar persistência para suportar consultas mais ricas e paginação
 - melhorar UX do console
 - adicionar validações mais consistentes de entrada e mensagens mais claras
-- documentar a API com exemplos mais completos
 - evoluir a infraestrutura HTTP para um framework web quando fizer sentido
 - considerar autenticação/autorização se o projeto passar a ter uso multiusuário
 
