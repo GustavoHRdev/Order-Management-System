@@ -1,91 +1,90 @@
 package api;
 
-import app.ApplicationContext;
+import app.OrderManagementApplication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import repository.InMemoryClienteRepository;
-import repository.InMemoryPedidoRepository;
-import repository.InMemoryProdutoRepository;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SpringBootTest(classes = OrderManagementApplication.class, properties = {
+        "spring.datasource.url=jdbc:h2:mem:api-test;DB_CLOSE_DELAY=-1",
+        "spring.datasource.username=sa",
+        "spring.datasource.password="
+})
+@AutoConfigureMockMvc
 public class RestServerTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    @Autowired
+    private MockMvc mockMvc;
 
-    private RestServer restServer;
-    private String baseUrl;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
-        ApplicationContext applicationContext = new ApplicationContext(
-                new InMemoryClienteRepository(),
-                new InMemoryProdutoRepository(),
-                new InMemoryPedidoRepository()
-        );
-
-        restServer = new RestServer(applicationContext, 0);
-        restServer.start();
-        baseUrl = "http://localhost:" + restServer.getPort();
-    }
-
-    @AfterEach
-    void tearDown() {
-        restServer.stop();
+        jdbcTemplate.execute("DELETE FROM itens_pedido");
+        jdbcTemplate.execute("DELETE FROM pedidos");
+        jdbcTemplate.execute("DELETE FROM produtos");
+        jdbcTemplate.execute("DELETE FROM clientes");
     }
 
     @Test
     void postClientesDeveCriarClienteERetornar201() throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/clientes",
-                """
-                {
-                  "nome": "Ana",
-                  "email": "ana@example.com"
-                }
-                """
-        );
+        var result = mockMvc.perform(post("/clientes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Ana",
+                                  "email": "ana@example.com"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
 
-        JsonNode body = objectMapper.readTree(response.body());
-        String location = response.headers().firstValue("Location").orElseThrow();
+        String response = result.getResponse().getContentAsString();
+        JsonNode body = objectMapper.readTree(response);
+        String location = result.getResponse().getHeader("Location");
 
-        assertEquals(201, response.statusCode());
-        assertTrue(location.endsWith("/clientes/" + body.get("id").asInt()));
         assertEquals("Ana", body.get("nome").asText());
         assertEquals("ana@example.com", body.get("email").asText());
         assertTrue(body.get("id").asInt() > 0);
+        assertTrue(location.endsWith("/clientes/" + body.get("id").asInt()));
     }
 
     @Test
     void postPedidosDeveRetornar404QuandoClienteNaoExiste() throws Exception {
         createCliente("Ana", "ana@example.com");
 
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/pedidos",
-                """
-                {
-                  "clienteId": 999
-                }
-                """
-        );
+        String response = mockMvc.perform(post("/pedidos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "clienteId": 999
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode body = objectMapper.readTree(response);
 
-        assertEquals(404, response.statusCode());
         assertEquals("Not Found", body.get("error").asText());
         assertEquals("Cliente inválido!", body.get("message").asText());
         assertEquals("/pedidos", body.get("path").asText());
@@ -97,64 +96,69 @@ public class RestServerTest {
         int produtoId = createProduto("Mouse", 50.0);
         int pedidoId = createPedido(clienteId);
 
-        sendJsonRequest(
-                "POST",
-                "/pedidos/" + pedidoId + "/itens",
-                """
-                {
-                  "produtoId": %d,
-                  "quantidade": 2
-                }
-                """.formatted(produtoId)
-        );
+        mockMvc.perform(post("/pedidos/" + pedidoId + "/itens")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "produtoId": %d,
+                                  "quantidade": 2
+                                }
+                                """.formatted(produtoId)))
+                .andExpect(status().isOk());
 
-        HttpResponse<String> response = sendJsonRequest(
-                "PATCH",
-                "/pedidos/" + pedidoId + "/status",
-                """
-                {
-                  "status": "PROCESSANDO"
-                }
-                """
-        );
+        String response = mockMvc.perform(patch("/pedidos/" + pedidoId + "/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "status": "PROCESSANDO"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode body = objectMapper.readTree(response);
 
-        assertEquals(200, response.statusCode());
         assertEquals("PROCESSANDO", body.get("status").asText());
         assertEquals(100.0, body.get("total").asDouble(), 0.0001);
     }
 
     @Test
     void postClientesDeveRetornar400QuandoJsonEhInvalido() throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/clientes",
-                """
-                {
-                  "nome": "Ana",
-                """
-        );
+        String response = mockMvc.perform(post("/clientes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Ana",
+                                """))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode body = objectMapper.readTree(response);
 
-        assertEquals(400, response.statusCode());
         assertEquals("Bad Request", body.get("error").asText());
         assertEquals("JSON inválido.", body.get("message").asText());
     }
 
     @Test
     void getClientesComMetodoNaoPermitidoDeveRetornar405() throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "DELETE",
-                "/clientes",
-                ""
-        );
+        String response = mockMvc.perform(delete("/clientes"))
+                .andExpect(status().isMethodNotAllowed())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode body = objectMapper.readTree(response);
 
-        assertEquals(405, response.statusCode());
-        assertEquals("GET, POST", response.headers().firstValue("Allow").orElseThrow());
+        String allowHeader = mockMvc.perform(delete("/clientes"))
+                .andReturn()
+                .getResponse()
+                .getHeader("Allow");
+        assertTrue(allowHeader.contains("GET"));
+        assertTrue(allowHeader.contains("POST"));
         assertEquals("Method Not Allowed", body.get("error").asText());
         assertEquals("Método não permitido.", body.get("message").asText());
     }
@@ -164,74 +168,92 @@ public class RestServerTest {
         int clienteId = createCliente("Ana", "ana@example.com");
         int pedidoId = createPedido(clienteId);
 
-        HttpResponse<String> response = sendJsonRequest(
-                "PATCH",
-                "/pedidos/" + pedidoId + "/status",
-                """
-                {
-                  "status": "QUALQUER_COISA"
-                }
-                """
-        );
+        String response = mockMvc.perform(patch("/pedidos/" + pedidoId + "/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "status": "QUALQUER_COISA"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode body = objectMapper.readTree(response);
 
-        assertEquals(400, response.statusCode());
         assertEquals("Bad Request", body.get("error").asText());
         assertEquals("Status inválido.", body.get("message").asText());
     }
 
-    private int createCliente(String nome, String email) throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/clientes",
-                """
-                {
-                  "nome": "%s",
-                  "email": "%s"
-                }
-                """.formatted(nome, email)
-        );
+    @Test
+    void postClientesDeveRetornar400QuandoPayloadNaoPassaNaValidacao() throws Exception {
+        String response = mockMvc.perform(post("/clientes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "",
+                                  "email": "invalido"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        return objectMapper.readTree(response.body()).get("id").asInt();
+        JsonNode body = objectMapper.readTree(response);
+
+        assertEquals("Bad Request", body.get("error").asText());
+        assertEquals("nome: não deve estar em branco.", body.get("message").asText());
+    }
+
+    private int createCliente(String nome, String email) throws Exception {
+        String response = mockMvc.perform(post("/clientes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "%s",
+                                  "email": "%s"
+                                }
+                                """.formatted(nome, email)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(response).get("id").asInt();
     }
 
     private int createProduto(String nome, double preco) throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/produtos",
-                """
-                {
-                  "nome": "%s",
-                  "preco": %s
-                }
-                """.formatted(nome, preco)
-        );
+        String response = mockMvc.perform(post("/produtos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "%s",
+                                  "preco": %s
+                                }
+                                """.formatted(nome, preco)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        return objectMapper.readTree(response.body()).get("id").asInt();
+        return objectMapper.readTree(response).get("id").asInt();
     }
 
     private int createPedido(int clienteId) throws Exception {
-        HttpResponse<String> response = sendJsonRequest(
-                "POST",
-                "/pedidos",
-                """
-                {
-                  "clienteId": %d
-                }
-                """.formatted(clienteId)
-        );
+        String response = mockMvc.perform(post("/pedidos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "clienteId": %d
+                                }
+                                """.formatted(clienteId)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        return objectMapper.readTree(response.body()).get("id").asInt();
-    }
-
-    private HttpResponse<String> sendJsonRequest(String method, String path, String body) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path))
-                .header("Content-Type", "application/json")
-                .method(method, HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
-                .build();
-
-        return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        return objectMapper.readTree(response).get("id").asInt();
     }
 }

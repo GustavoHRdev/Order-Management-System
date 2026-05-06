@@ -1,14 +1,15 @@
 package repository;
 
-import database.ConnectionFactory;
-import database.DatabaseInitializer;
-import database.H2ConnectionFactory;
 import model.Cliente;
 import model.Pedido;
 import model.Produto;
 import model.StatusPedido;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
+import javax.sql.DataSource;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,12 +20,12 @@ public class JdbcRepositoriesTest {
 
     @Test
     void jdbcRepositoriesDevemPersistirPedidoComItens() {
-        ConnectionFactory connectionFactory = createIsolatedConnectionFactory();
-        new DatabaseInitializer(connectionFactory).initialize();
+        DataSource dataSource = createIsolatedDataSource();
+        initializeSchema(dataSource);
 
-        ClienteRepository clienteRepository = new JdbcClienteRepository(connectionFactory);
-        ProdutoRepository produtoRepository = new JdbcProdutoRepository(connectionFactory);
-        PedidoRepository pedidoRepository = new JdbcPedidoRepository(connectionFactory);
+        ClienteRepository clienteRepository = new JdbcClienteRepository(dataSource);
+        ProdutoRepository produtoRepository = new JdbcProdutoRepository(dataSource);
+        PedidoRepository pedidoRepository = new JdbcPedidoRepository(dataSource);
 
         Cliente cliente = new Cliente("Ana", "ana@example.com");
         Produto produto = new Produto("Mouse", 50.0);
@@ -45,11 +46,11 @@ public class JdbcRepositoriesTest {
 
     @Test
     void jdbcRepositoriesDevemRemoverPedidosEntregues() {
-        ConnectionFactory connectionFactory = createIsolatedConnectionFactory();
-        new DatabaseInitializer(connectionFactory).initialize();
+        DataSource dataSource = createIsolatedDataSource();
+        initializeSchema(dataSource);
 
-        ClienteRepository clienteRepository = new JdbcClienteRepository(connectionFactory);
-        PedidoRepository pedidoRepository = new JdbcPedidoRepository(connectionFactory);
+        ClienteRepository clienteRepository = new JdbcClienteRepository(dataSource);
+        PedidoRepository pedidoRepository = new JdbcPedidoRepository(dataSource);
 
         Cliente cliente = new Cliente("Ana", "ana@example.com");
         clienteRepository.salvar(cliente);
@@ -63,8 +64,18 @@ public class JdbcRepositoriesTest {
         assertTrue(pedidoRepository.estaVazio());
     }
 
-    private ConnectionFactory createIsolatedConnectionFactory() {
+    private DataSource createIsolatedDataSource() {
         String jdbcUrl = "jdbc:h2:mem:test_" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1";
-        return new H2ConnectionFactory(jdbcUrl, "sa", "");
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername("sa");
+        dataSource.setPassword("");
+        return dataSource;
+    }
+
+    private void initializeSchema(DataSource dataSource) {
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("schema.sql"));
+        populator.execute(dataSource);
     }
 }
