@@ -1,10 +1,12 @@
 package service;
 
 import model.Produto;
+import org.springframework.stereotype.Service;
 import repository.ProdutoRepository;
 
 import java.util.List;
 
+@Service
 public class ProdutoService {
 
     private final ProdutoRepository repository;

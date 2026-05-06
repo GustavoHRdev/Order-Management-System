@@ -1,12 +1,14 @@
 package repository;
 
-import database.ConnectionFactory;
 import model.Cliente;
 import model.ItemPedido;
 import model.Pedido;
 import model.Produto;
 import model.StatusPedido;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,19 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
+@Primary
 public class JdbcPedidoRepository implements PedidoRepository {
 
-    private final ConnectionFactory connectionFactory;
+    private final DataSource dataSource;
 
-    public JdbcPedidoRepository(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public JdbcPedidoRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public void salvar(Pedido pedido) {
         String sql = "INSERT INTO pedidos (cliente_id, status) VALUES (?, ?)";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, pedido.getCliente().getId());
             statement.setString(2, pedido.getStatus().name());
@@ -54,7 +58,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
                 """;
 
         List<Pedido> pedidos = new ArrayList<>();
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
@@ -75,7 +79,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
                 WHERE p.id = ?
                 """;
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
 
@@ -94,7 +98,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
     public boolean estaVazio() {
         String sql = "SELECT 1 FROM pedidos FETCH FIRST ROW ONLY";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             return !resultSet.next();
@@ -107,7 +111,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
     public void adicionarItem(int pedidoId, ItemPedido itemPedido) {
         String sql = "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade) VALUES (?, ?, ?)";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, pedidoId);
             statement.setInt(2, itemPedido.getProduto().getId());
@@ -122,7 +126,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
     public void atualizarStatus(int pedidoId, StatusPedido statusPedido) {
         String sql = "UPDATE pedidos SET status = ? WHERE id = ?";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, statusPedido.name());
             statement.setInt(2, pedidoId);
@@ -136,7 +140,7 @@ public class JdbcPedidoRepository implements PedidoRepository {
     public void removerEntregues() {
         String sql = "DELETE FROM pedidos WHERE status = ?";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, StatusPedido.ENTREGUE.name());
             statement.executeUpdate();

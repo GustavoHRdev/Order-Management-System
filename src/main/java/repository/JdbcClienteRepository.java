@@ -1,8 +1,10 @@
 package repository;
 
-import database.ConnectionFactory;
 import model.Cliente;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,19 +14,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
+@Primary
 public class JdbcClienteRepository implements ClienteRepository {
 
-    private final ConnectionFactory connectionFactory;
+    private final DataSource dataSource;
 
-    public JdbcClienteRepository(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public JdbcClienteRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public void salvar(Cliente cliente) {
         String sql = "INSERT INTO clientes (nome, email) VALUES (?, ?)";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, cliente.getNome());
             statement.setString(2, cliente.getEmail());
@@ -45,7 +49,7 @@ public class JdbcClienteRepository implements ClienteRepository {
         String sql = "SELECT id, nome, email FROM clientes ORDER BY id";
         List<Cliente> clientes = new ArrayList<>();
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
@@ -61,7 +65,7 @@ public class JdbcClienteRepository implements ClienteRepository {
     public Optional<Cliente> buscarPorId(int id) {
         String sql = "SELECT id, nome, email FROM clientes WHERE id = ?";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
 
@@ -80,7 +84,7 @@ public class JdbcClienteRepository implements ClienteRepository {
     public boolean estaVazio() {
         String sql = "SELECT 1 FROM clientes FETCH FIRST ROW ONLY";
 
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             return !resultSet.next();

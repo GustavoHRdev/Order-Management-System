@@ -1,9 +1,11 @@
 package service;
 
 import model.*;
+import org.springframework.stereotype.Service;
 import repository.*;
 import java.util.List;
 
+@Service
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;

@@ -1,10 +1,12 @@
 package service;
 
 import model.Cliente;
+import org.springframework.stereotype.Service;
 import repository.ClienteRepository;
 
 import java.util.List;
 
+@Service
 public class ClienteService {
 
     private final ClienteRepository repository;
