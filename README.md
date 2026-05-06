@@ -1,6 +1,6 @@
 # Order Management System
 
-Sistema de gerenciamento de pedidos em Java, evoluído de uma aplicação de console para uma base com camadas mais bem definidas, persistência em H2 via JDBC e API REST.
+Sistema de gerenciamento de pedidos em Java, evoluído de uma aplicação de console para uma base com Spring Boot, persistência em H2 via JDBC e API REST.
 
 O foco do projeto é consolidar fundamentos de backend:
 - modelagem de domínio
@@ -18,8 +18,11 @@ O projeto atualmente oferece:
 - adição de itens ao pedido
 - atualização de status com regras de transição
 - persistência em H2 usando JDBC
-- API REST sobre os mesmos services usados pelo console
-- testes unitários e testes de integração de repositório JDBC
+- API REST com Spring MVC sobre os mesmos services usados pelo console
+- validação de entrada com Bean Validation
+- tratamento padronizado de erros HTTP em JSON
+- testes unitários, testes de integração de repositório JDBC e testes da camada REST
+- workflow GitHub Actions rodando `mvn test`
 - Maven Wrapper (`mvnw`, `mvnw.cmd`)
 
 ## Arquitetura
@@ -36,17 +39,14 @@ A estrutura atual está organizada em camadas:
   Contratos de persistência e implementações concretas.
   Hoje existem implementações em memória e implementações JDBC.
 
-- `database`
-  Infraestrutura de conexão e inicialização do banco H2.
-
 - `cli`
   Interface de console e comandos.
 
 - `api`
-  Endpoints HTTP simples usando `HttpServer`, sem framework web pesado.
+  Controllers REST com Spring MVC, DTOs, validação e tratamento padronizado de erros.
 
 - `app`
-  Bootstrap da aplicação, contexto de dependências e pontos de entrada.
+  Bootstrap com Spring Boot e pontos de entrada da aplicação.
 
 ## Principais decisões já aplicadas
 
@@ -57,9 +57,10 @@ A estrutura atual está organizada em camadas:
 - criação de interfaces para repositórios
 - separação entre contrato e implementação (`InMemory*` e `Jdbc*`)
 - retirada de responsabilidade do `Main`
-- criação de `ApplicationContext` para centralizar a composição
 - adição de H2 com JDBC
-- exposição de API REST mantendo os `services` como centro da regra de negócio
+- migração da API para Spring Boot, controllers e injeção de dependência nativa
+- validação de entrada com Bean Validation
+- padronização de erros da API com handler centralizado
 
 ## Regras de negócio implementadas
 
@@ -77,11 +78,14 @@ A estrutura atual está organizada em camadas:
 - Java 17
 - Maven
 - Maven Wrapper
-- JUnit 5
+- Spring Boot 3.5.14
+- Spring Web
+- Spring Validation
+- Spring JDBC
 - H2 Database
 - JDBC
-- Jackson
-- `com.sun.net.httpserver.HttpServer`
+- JUnit 5
+- GitHub Actions
 
 ## Como executar
 
@@ -124,7 +128,7 @@ Linux/macOS:
 
 Opcionalmente, ainda e possivel executar `app.Main` pela IDE.
 
-Essa entrada usa o `ApplicationContext`, inicializa o banco H2 e sobe o fluxo CLI.
+Essa entrada sobe um contexto Spring sem servidor web, inicializa o banco H2 e executa o fluxo CLI.
 
 ### Rodar a API REST
 
@@ -140,7 +144,7 @@ Linux/macOS:
 ./mvnw compile exec:java@run-api
 ```
 
-Opcionalmente, ainda e possivel executar `app.ApiMain` pela IDE.
+Opcionalmente, ainda e possivel executar `app.ApiMain` ou `app.OrderManagementApplication` pela IDE.
 
 Se a porta `8080` ja estiver em uso, rode com outra porta:
 
@@ -164,6 +168,7 @@ A documentacao executavel da API fica em:
 Ela inclui:
 - fluxo completo com `curl`
 - exemplos de payload e resposta
+- exemplos de validacao e erros HTTP
 - cenarios de erro
 - collection importavel no Postman
 
@@ -177,6 +182,7 @@ Ela inclui:
 
 Respostas:
 - `201 Created` em criacao, com header `Location`
+- `400 Bad Request` para payload invalido ou falha de validacao
 - `405 Method Not Allowed` para metodo nao suportado na rota
 
 Exemplo de payload:
@@ -196,6 +202,7 @@ Exemplo de payload:
 
 Respostas:
 - `201 Created` em criacao, com header `Location`
+- `400 Bad Request` para payload invalido ou falha de validacao
 - `405 Method Not Allowed` para metodo nao suportado na rota
 
 Exemplo de payload:
@@ -218,7 +225,7 @@ Exemplo de payload:
 Respostas:
 - `201 Created` em criacao do pedido, com header `Location`
 - `200 OK` ao adicionar item e atualizar status
-- `400 Bad Request` para JSON, ID ou status invalidos
+- `400 Bad Request` para JSON, validacao, ID ou status invalidos
 - `404 Not Found` para entidade inexistente ou rota inexistente
 - `405 Method Not Allowed` para metodo nao suportado na rota
 
@@ -251,6 +258,8 @@ Atualizar status:
 
 ```text
 Order-Management-System/
+├── .github/
+│   └── workflows/
 ├── .mvn/
 ├── mvnw
 ├── mvnw.cmd
@@ -262,12 +271,13 @@ Order-Management-System/
     │       ├── api/
     │       ├── app/
     │       ├── cli/
-    │       ├── database/
     │       ├── model/
     │       ├── repository/
     │       └── service/
+    │   └── resources/
     └── test/
         └── java/
+            ├── api/
             ├── repository/
             └── service/
 ```
@@ -277,8 +287,8 @@ Order-Management-System/
 O projeto agora usa H2 com JDBC como persistência principal da aplicação.
 
 Pontos importantes:
-- o banco é inicializado pelo `DatabaseInitializer`
-- o contexto padrão usa H2 em arquivo local
+- o banco é inicializado via `schema.sql`
+- o contexto padrão usa H2 em arquivo local por meio do datasource do Spring Boot
 - os repositórios JDBC implementam os mesmos contratos usados anteriormente pelas implementações em memória
 - os contratos agora usam `Optional` em buscas por ID
 
@@ -290,6 +300,8 @@ Hoje o projeto possui:
 - testes de service
 - testes cobrindo regras de status e IDs inválidos
 - testes de integração para repositórios JDBC/H2
+- testes de integração da camada REST com `MockMvc`
+- workflow CI no GitHub Actions executando `mvn test`
 
 Execução:
 
@@ -297,19 +309,15 @@ Execução:
 mvnw.cmd test
 ```
 
-## Melhorias que ainda serão aplicadas
+## Melhorias futuras
 
 As próximas melhorias que continuam fazendo sentido para a evolução do projeto são:
 
-- adicionar DTOs específicos para a API, separados das respostas internas atuais
-- melhorar tratamento de erros HTTP com estrutura padronizada
 - extrair casos de uso mais explícitos se os services crescerem
-- adicionar testes de integração para a camada REST
+- migrar a persistência para Spring Data JPA
 - revisar persistência para suportar consultas mais ricas e paginação
 - melhorar UX do console
-- adicionar validações mais consistentes de entrada e mensagens mais claras
-- evoluir a infraestrutura HTTP para um framework web quando fizer sentido
-- considerar autenticação/autorização se o projeto passar a ter uso multiusuário
+- evoluir a camada de autenticacao/autorizacao quando fizer sentido
 
 ## Observação
 

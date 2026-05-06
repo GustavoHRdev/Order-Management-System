@@ -2,6 +2,8 @@
 
 Documentacao executavel da API com exemplos de `curl` e uma collection Postman importavel.
 
+A API agora roda sobre Spring Boot e Spring MVC, com validacao de entrada via Bean Validation e erros padronizados em JSON.
+
 ## Pre-requisitos
 
 - Java 17+
@@ -38,6 +40,13 @@ Importe o arquivo abaixo no Postman:
 - [docs/postman/Order-Management-System.postman_collection.json](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/postman/Order-Management-System.postman_collection.json)
 
 A collection usa a variavel `baseUrl`, com valor padrao `http://localhost:8080`.
+
+## Comportamentos da API
+
+- criacao retorna `201 Created` com header `Location`
+- validacoes de entrada retornam `400 Bad Request`
+- erros de negocio retornam JSON estruturado
+- metodos nao suportados retornam `405 Method Not Allowed`
 
 ## Fluxo completo via curl
 
@@ -240,6 +249,26 @@ Resposta esperada:
   "status": 400,
   "error": "Bad Request",
   "message": "JSON inválido.",
+  "path": "/clientes"
+}
+```
+
+### Validacao de entrada
+
+```bash
+curl -i -X POST http://localhost:8080/clientes \
+  -H "Content-Type: application/json" \
+  -d "{\"nome\":\"\",\"email\":\"invalido\"}"
+```
+
+Resposta esperada:
+
+```json
+{
+  "timestamp": "2026-05-05T12:34:56.789Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "nome: não deve estar em branco.",
   "path": "/clientes"
 }
 ```
