@@ -37,7 +37,7 @@ http://localhost:8080
 
 Importe o arquivo abaixo no Postman:
 
-- [docs/postman/Order-Management-System.postman_collection.json](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/postman/Order-Management-System.postman_collection.json)
+- [docs/postman/Order-Management-System.postman_collection.json](postman/Order-Management-System.postman_collection.json)
 
 A collection usa a variavel `baseUrl`, com valor padrao `http://localhost:8080`.
 

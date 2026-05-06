@@ -162,8 +162,8 @@ http://localhost:8080
 
 A documentacao executavel da API fica em:
 
-- [docs/API-REST.md](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/API-REST.md)
-- [docs/postman/Order-Management-System.postman_collection.json](/C:/Users/Win 10/IdeaProjects/Order-Management-System/docs/postman/Order-Management-System.postman_collection.json)
+- [docs/API-REST.md](docs/API-REST.md)
+- [docs/postman/Order-Management-System.postman_collection.json](docs/postman/Order-Management-System.postman_collection.json)
 
 Ela inclui:
 - fluxo completo com `curl`
