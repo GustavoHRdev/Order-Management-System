@@ -1,4 +1,9 @@
 package api.dto.request;
 
-public record CriarPedidoRequest(int clienteId) {
+import jakarta.validation.constraints.Positive;
+
+public record CriarPedidoRequest(
+        @Positive(message = "clienteId: deve ser maior que zero.")
+        int clienteId
+) {
 }

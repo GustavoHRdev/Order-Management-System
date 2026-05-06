@@ -1,4 +1,9 @@
 package api.dto.request;
 
-public record AtualizarStatusRequest(String status) {
+import jakarta.validation.constraints.NotBlank;
+
+public record AtualizarStatusRequest(
+        @NotBlank(message = "status: não deve estar em branco.")
+        String status
+) {
 }
