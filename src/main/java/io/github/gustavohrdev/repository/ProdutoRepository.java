@@ -1,0 +1,18 @@
+package io.github.gustavohrdev.repository;
+
+import io.github.gustavohrdev.model.Produto;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ProdutoRepository {
+
+    void salvar(Produto produto);
+
+    List<Produto> listar();
+
+    Optional<Produto> buscarPorId(int id);
+
+    boolean estaVazio();
+}
+
