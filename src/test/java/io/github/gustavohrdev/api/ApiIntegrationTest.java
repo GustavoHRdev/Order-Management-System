@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.datasource.password="
 })
 @AutoConfigureMockMvc
-public class RestServerTest {
+public class ApiIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

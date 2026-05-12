@@ -2,7 +2,7 @@
 
 Documentacao executavel da API com exemplos de `curl` e uma collection Postman importavel.
 
-A API agora roda sobre Spring Boot e Spring MVC, com validacao de entrada via Bean Validation e erros padronizados em JSON.
+A API agora roda sobre Spring Boot e Spring MVC, com validacao de entrada via Bean Validation, tratamento padronizado de erros em JSON e testes de integracao com MockMvc.
 
 ## Pre-requisitos
 

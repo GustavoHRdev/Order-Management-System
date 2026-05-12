@@ -1,6 +1,6 @@
 # Order Management System
 
-Sistema de gerenciamento de pedidos em Java, evoluído de uma aplicação de console para uma base com Spring Boot, persistência em H2 via JDBC e API REST.
+Sistema de gerenciamento de pedidos em Java, evoluído de uma aplicação de console para uma API REST com Spring Boot, persistência em H2 via JDBC e testes automatizados.
 
 O foco do projeto é consolidar fundamentos de backend:
 - modelagem de domínio
@@ -8,6 +8,17 @@ O foco do projeto é consolidar fundamentos de backend:
 - separação de responsabilidades
 - testes
 - evolução incremental da arquitetura
+
+## Resumo técnico
+
+- Spring Boot 3.5
+- API REST com Spring MVC
+- H2 como banco principal de desenvolvimento
+- JDBC manual via datasource do Spring Boot
+- Bean Validation para entrada da API
+- tratamento padronizado de erros em JSON
+- testes de integração com MockMvc
+- CI com GitHub Actions
 
 ## Estado atual
 
@@ -24,6 +35,8 @@ O projeto atualmente oferece:
 - testes unitários, testes de integração de repositório JDBC e testes da camada REST
 - workflow GitHub Actions rodando `mvn test`
 - Maven Wrapper (`mvnw`, `mvnw.cmd`)
+
+Hoje o projeto já está numa base compatível com backend júnior/pleno inicial: Spring Boot, API HTTP, persistência real, validação, tratamento de erro e testes automatizados.
 
 ## Arquitetura
 
@@ -43,10 +56,13 @@ A estrutura atual está organizada em camadas:
   Interface de console e comandos.
 
 - `api`
-  Controllers REST com Spring MVC, DTOs, validação e tratamento padronizado de erros.
+  Controllers REST com Spring MVC, DTOs, Bean Validation e tratamento padronizado de erros.
 
 - `app`
   Bootstrap com Spring Boot e pontos de entrada da aplicação.
+
+- `exception`
+  Exceções de domínio e validação usadas pela regra de negócio e mapeadas na camada HTTP.
 
 ## Principais decisões já aplicadas
 
@@ -84,6 +100,7 @@ A estrutura atual está organizada em camadas:
 - Spring JDBC
 - H2 Database
 - JDBC
+- MockMvc
 - JUnit 5
 - GitHub Actions
 
@@ -294,6 +311,8 @@ Pontos importantes:
 
 Isso permite trocar a infraestrutura sem reescrever a regra de negócio.
 
+Observação: o próximo passo natural de infraestrutura é adicionar PostgreSQL e migrar a camada JDBC manual para Spring Data JPA.
+
 ## Testes
 
 Hoje o projeto possui:
@@ -315,6 +334,7 @@ As próximas melhorias que continuam fazendo sentido para a evolução do projet
 
 - extrair casos de uso mais explícitos se os services crescerem
 - migrar a persistência para Spring Data JPA
+- adicionar perfil PostgreSQL para ambiente mais próximo de produção
 - revisar persistência para suportar consultas mais ricas e paginação
 - melhorar UX do console
 - evoluir a camada de autenticacao/autorizacao quando fizer sentido
