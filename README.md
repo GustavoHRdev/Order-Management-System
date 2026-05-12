@@ -36,8 +36,6 @@ O projeto atualmente oferece:
 - workflow GitHub Actions rodando `mvn test`
 - Maven Wrapper (`mvnw`, `mvnw.cmd`)
 
-Hoje o projeto já está numa base compatível com backend júnior/pleno inicial: Spring Boot, API HTTP, persistência real, validação, tratamento de erro e testes automatizados.
-
 ## Arquitetura
 
 A estrutura atual está organizada em camadas:
@@ -285,18 +283,21 @@ Order-Management-System/
 └── src/
     ├── main/
     │   └── java/
-    │       ├── api/
-    │       ├── app/
-    │       ├── cli/
-    │       ├── model/
-    │       ├── repository/
-    │       └── service/
+    │       └── io/github/gustavohrdev/
+    │           ├── api/
+    │           ├── app/
+    │           ├── cli/
+    │           ├── exception/
+    │           ├── model/
+    │           ├── repository/
+    │           └── service/
     │   └── resources/
     └── test/
         └── java/
-            ├── api/
-            ├── repository/
-            └── service/
+            └── io/github/gustavohrdev/
+                ├── api/
+                ├── repository/
+                └── service/
 ```
 
 ## Persistência
